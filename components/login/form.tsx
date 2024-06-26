@@ -1,18 +1,18 @@
 'use client'
 
-import { FormState } from '@/types'
 import { useEffect } from 'react'
 import { useFormState } from 'react-dom'
-import { FormSubmitButton } from '../form-submit-button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { useToast } from '../ui/use-toast'
-import { signup } from './actions'
+import { FormSubmitButton } from '../form-submit-button'
+import { login } from './actions'
+import { FormState } from '@/types'
 
 const initState = { status: 'INIT' } satisfies FormState
 
-export const SignUpForm = () => {
-  const [state, action] = useFormState<FormState, FormData>(signup, initState)
+export const LoginForm = () => {
+  const [state, action] = useFormState<FormState, FormData>(login, initState)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -31,21 +31,11 @@ export const SignUpForm = () => {
         {state.status === 'FORM_ERROR' && <div>{state.errors?.email}</div>}
       </div>
       <div>
-        <Label>First name</Label>
-        <Input placeholder="Firstname" name="firstname" />
-        {state.status === 'FORM_ERROR' && <div>{state.errors?.firstname}</div>}
-      </div>
-      <div>
-        <Label>Last name</Label>
-        <Input placeholder="Lastname" name="lastname" />
-        {state.status === 'FORM_ERROR' && <div>{state.errors?.lastname}</div>}
-      </div>
-      <div>
         <Label>Password</Label>
         <Input type="password" placeholder="Password" name="password" />
         {state.status === 'FORM_ERROR' && <div>{state.errors?.password}</div>}
       </div>
-      <FormSubmitButton>Sign up</FormSubmitButton>
+      <FormSubmitButton>Login</FormSubmitButton>
     </form>
   )
 }

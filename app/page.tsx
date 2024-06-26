@@ -1,13 +1,34 @@
-import { supabaseServerClient } from "@/utils/supabase/server";
+import { LogoutButton } from '@/components/logout/button'
+import { Button } from '@/components/ui/button'
+import { createClient } from '@/utils/supabase/server'
+import Link from 'next/link'
 
 export default async function Home() {
-  const { data } = await  supabaseServerClient.auth.getSession()
-  console.log("🚀 ~ Home ~ data:", data)
+  const supabase = createClient()
   const {
-    data: user,
-  } = await supabaseServerClient.auth.getUser()
-  console.log("🚀 ~ Home ~ user:", user)
+    data: { user },
+  } = await supabase.auth.getUser()
+  console.log('🚀 ~ Home ~ user:', user)
+
+  if (user) {
+    return (
+      <div>
+        <h1>Home</h1>
+        <p>{user.email}</p>
+        <LogoutButton />
+      </div>
+    )
+  }
+
   return (
-    <div>Home</div>
-  );
+    <div>
+      Home
+      <Link href="/signup" passHref>
+        <Button>Sign up</Button>
+      </Link>
+      <Link href="/login" passHref>
+        <Button>Login</Button>
+      </Link>
+    </div>
+  )
 }
