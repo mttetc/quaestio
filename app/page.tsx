@@ -8,13 +8,15 @@ export default async function Home() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  console.log('🚀 ~ Home ~ user:', user)
 
   if (user) {
     return (
       <div>
         <h1>Home</h1>
         <p>{user.email}</p>
+        <Link href="/link-email" passHref>
+          <Button>Link email</Button>
+        </Link>
         <LogoutButton />
       </div>
     )

@@ -31,5 +31,5 @@ export async function login(_state: FormState, formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/?action=login_success')
 }

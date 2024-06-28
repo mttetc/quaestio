@@ -20,8 +20,16 @@ export async function signup(_state: FormState, formData: FormData) {
       errors: JSON.parse(JSON.stringify(errors)),
     } satisfies FormState
   }
-
-  const { error } = await supabase.auth.signUp(validationResult.data)
+  const { email, password, name } = validationResult.data
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        display_name: name,
+      },
+    },
+  })
 
   if (error) {
     return {
@@ -31,5 +39,5 @@ export async function signup(_state: FormState, formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/?action=signup_success')
 }

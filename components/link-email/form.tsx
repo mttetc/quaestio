@@ -1,30 +1,30 @@
 'use client'
 
+import { FormState } from '@/types'
 import { useEffect } from 'react'
 import { useFormState } from 'react-dom'
+import { FormSubmitButton } from '../form-submit-button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { useToast } from '../ui/use-toast'
-import { FormSubmitButton } from '../form-submit-button'
-import { login } from './actions'
-import { FormState } from '@/types'
+import { linkgmail } from './actions'
 
 const initState = { status: 'INIT' } satisfies FormState
 
-export const LoginForm = () => {
-  const [state, action] = useFormState<FormState, FormData>(login, initState)
+export const LinkEmailForm = () => {
+  const [state, action] = useFormState<FormState, FormData>(
+    linkgmail,
+    initState,
+  )
   const { toast } = useToast()
 
   useEffect(() => {
-    const { status } = state
+    if (state.status !== 'AUTH_ERROR') return
 
-    if (status === 'INIT') return
-
-    if (state.status === 'AUTH_ERROR') {
-      toast({
-        title: state.error.code,
-      })
-    }
+    toast({
+      title: state.error.code,
+      description: 'prout',
+    })
   }, [state, toast])
 
   return (

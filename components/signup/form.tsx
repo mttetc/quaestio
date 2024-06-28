@@ -26,19 +26,14 @@ export const SignUpForm = () => {
   return (
     <form action={action}>
       <div>
+        <Label>Name</Label>
+        <Input placeholder="Name" name="name" />
+        {state.status === 'FORM_ERROR' && <div>{state.errors?.name}</div>}
+      </div>
+      <div>
         <Label>Email</Label>
         <Input placeholder="Email" name="email" />
         {state.status === 'FORM_ERROR' && <div>{state.errors?.email}</div>}
-      </div>
-      <div>
-        <Label>First name</Label>
-        <Input placeholder="Firstname" name="firstname" />
-        {state.status === 'FORM_ERROR' && <div>{state.errors?.firstname}</div>}
-      </div>
-      <div>
-        <Label>Last name</Label>
-        <Input placeholder="Lastname" name="lastname" />
-        {state.status === 'FORM_ERROR' && <div>{state.errors?.lastname}</div>}
       </div>
       <div>
         <Label>Password</Label>
