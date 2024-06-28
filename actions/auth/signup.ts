@@ -3,8 +3,10 @@
 import { FormState } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { signUpFormSchema } from './schemas'
+import { signUpFormSchema } from '../../components/signup/schemas'
 import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
+import { ActionCookie } from '@/components/toast-provider'
 
 export async function signup(_state: FormState, formData: FormData) {
   const supabase = createClient()
@@ -17,7 +19,7 @@ export async function signup(_state: FormState, formData: FormData) {
 
     return {
       status: 'FORM_ERROR',
-      errors: JSON.parse(JSON.stringify(errors)),
+      errors,
     } satisfies FormState
   }
   const { email, password, name } = validationResult.data
@@ -38,6 +40,11 @@ export async function signup(_state: FormState, formData: FormData) {
     } satisfies FormState
   }
 
+  cookies().set(
+    'action',
+    JSON.stringify({ title: 'signup' } satisfies ActionCookie),
+    { secure: true },
+  )
   revalidatePath('/', 'layout')
-  redirect('/?action=signup_success')
+  redirect('/')
 }

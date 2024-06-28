@@ -1,26 +1,31 @@
 'use client'
 
+import { deleteCookie, getCookie } from '@/utils/cookies'
 import { PropsWithChildren, useEffect } from 'react'
 import { useToast } from './ui/use-toast'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+
+export interface ActionCookie {
+  title: string
+  message?: string
+}
 
 const ToastProvider = ({ children }: PropsWithChildren) => {
   const { toast } = useToast()
-  const pathname = usePathname()
-  const router = useRouter()
-  const urlParams = useSearchParams()
+  const action = getCookie('action')
 
   useEffect(() => {
-    const action = urlParams.get('action')
     if (!action) return
 
-    //TODO: translate action
+    const decodedAction = decodeURIComponent(action)
+    const cookie: ActionCookie = JSON.parse(decodedAction)
+
     toast({
-      title: action,
+      title: cookie.title,
+      description: cookie.message,
     })
 
-    router.replace(pathname)
-  }, [router, toast, urlParams, pathname])
+    deleteCookie('action')
+  }, [toast, action])
 
   return children
 }

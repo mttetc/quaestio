@@ -3,8 +3,10 @@
 import { FormState } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { loginFormSchema } from './schemas'
+import { loginFormSchema } from '../../components/login/schemas'
 import { createClient } from '@/utils/supabase/server'
+import { cookies } from 'next/headers'
+import { ActionCookie } from '@/components/toast-provider'
 
 export async function login(_state: FormState, formData: FormData) {
   const supabase = createClient()
@@ -30,6 +32,11 @@ export async function login(_state: FormState, formData: FormData) {
     } satisfies FormState
   }
 
+  cookies().set(
+    'action',
+    JSON.stringify({ title: 'login' } satisfies ActionCookie),
+    { secure: true },
+  )
   revalidatePath('/', 'layout')
-  redirect('/?action=login_success')
+  redirect('/')
 }

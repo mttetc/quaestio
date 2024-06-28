@@ -7,7 +7,7 @@ import { FormSubmitButton } from '../form-submit-button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { useToast } from '../ui/use-toast'
-import { signup } from './actions'
+import { signup } from '../../actions/auth/signup'
 
 const initState = { status: 'INIT' } satisfies FormState
 
@@ -16,10 +16,10 @@ export const SignUpForm = () => {
   const { toast } = useToast()
 
   useEffect(() => {
-    if (state.status !== 'AUTH_ERROR') return
+    const hasAuthError = state.status === 'AUTH_ERROR'
+    if (!hasAuthError) return
     toast({
       title: state.error.code,
-      description: 'prout',
     })
   }, [state, toast])
 

@@ -2,30 +2,23 @@
 
 import { FormState } from '@/types'
 import { FormSubmitButton } from '../form-submit-button'
-import { logout } from './actions'
+import { logout } from '../../actions/auth/logout'
 import { useFormState } from 'react-dom'
 import { useToast } from '../ui/use-toast'
 import { useEffect } from 'react'
 
+const initState = { status: 'INIT' } satisfies FormState
+
 export const LogoutButton = () => {
-  const [state, action] = useFormState<FormState, FormData>(logout, {
-    status: 'INIT',
-  })
+  const [state, action] = useFormState<FormState, FormData>(logout, initState)
   const { toast } = useToast()
 
   useEffect(() => {
-    const { status } = state
-    console.log(state)
-    if (status === 'INIT') return undefined
-    if (state.status === 'AUTH_ERROR') {
-      toast({
-        title: state.error.code,
-      })
-    } else {
-      toast({
-        title: 'Success !',
-      })
-    }
+    const hasAuthError = state.status === 'AUTH_ERROR'
+    if (!hasAuthError) return
+    toast({
+      title: state.error.code,
+    })
   }, [state, toast])
 
   return (

@@ -4,7 +4,7 @@ import { FormState } from '@/types'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { linkEmailFormSchema } from './schemas'
+import { linkEmailFormSchema } from '../components/link-email/schemas'
 
 export async function linkgmail(_state: FormState, formData: FormData) {
   const supabase = createClient()

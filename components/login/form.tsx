@@ -6,7 +6,7 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { useToast } from '../ui/use-toast'
 import { FormSubmitButton } from '../form-submit-button'
-import { login } from './actions'
+import { login } from '../../actions/auth/login'
 import { FormState } from '@/types'
 
 const initState = { status: 'INIT' } satisfies FormState

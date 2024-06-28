@@ -7,7 +7,7 @@ import { FormSubmitButton } from '../form-submit-button'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { useToast } from '../ui/use-toast'
-import { linkgmail } from './actions'
+import { linkgmail } from '../../actions/linkgmail'
 
 const initState = { status: 'INIT' } satisfies FormState
 
