@@ -11,6 +11,7 @@ import { ActionCookie } from '@/components/toast-provider'
 export async function login(_state: FormState, formData: FormData) {
   const supabase = createClient()
   const formDataObj = Object.fromEntries(Array.from(formData.entries()))
+  console.log('🚀 ~ login ~ formDataObj:', formDataObj)
 
   const validationResult = loginFormSchema.safeParse(formDataObj)
 

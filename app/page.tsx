@@ -1,7 +1,6 @@
-import { LogoutButton } from '@/components/logout/button'
-import { Button } from '@/components/ui/button'
+import { Dashboard } from '@/components/dashboard'
+import { Landing } from '@/components/landing'
 import { createClient } from '@/utils/supabase/server'
-import Link from 'next/link'
 
 export default async function Home() {
   const supabase = createClient()
@@ -10,27 +9,8 @@ export default async function Home() {
   } = await supabase.auth.getUser()
 
   if (user) {
-    return (
-      <div>
-        <h1>Home</h1>
-        <p>{user.email}</p>
-        <Link href="/link-email" passHref>
-          <Button>Link email</Button>
-        </Link>
-        <LogoutButton />
-      </div>
-    )
+    return <Dashboard />
   }
 
-  return (
-    <div>
-      Home
-      <Link href="/signup" passHref>
-        <Button>Sign up</Button>
-      </Link>
-      <Link href="/login" passHref>
-        <Button>Login</Button>
-      </Link>
-    </div>
-  )
+  return <Landing />
 }
