@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/auth-form";
+import { DevLogin } from "@/components/auth/dev-login";
 import { Mail } from "lucide-react";
 
 export default function LoginPage() {
@@ -25,6 +26,7 @@ export default function LoginPage() {
             Sign up
           </Link>
         </p>
+        <DevLogin />
       </div>
     </div>
   );

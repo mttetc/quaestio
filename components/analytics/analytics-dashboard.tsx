@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DateRange } from "react-day-picker";
 import { DateRangePicker } from "./date-range-picker";
 import { QuestionChart } from "./question-chart";
 import { QuestionList } from "./question-list";
@@ -10,12 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function AnalyticsDashboard() {
-  const [dateRange, setDateRange] = useState<{
-    from: Date;
-    to: Date;
-  }>({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
-    to: new Date(),
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+    to: new Date()
   });
 
   return (

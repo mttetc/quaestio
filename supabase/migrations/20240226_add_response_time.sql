@@ -1,0 +1,1 @@
+ALTER TABLE qa_entries ADD COLUMN response_time_hours INTEGER; 

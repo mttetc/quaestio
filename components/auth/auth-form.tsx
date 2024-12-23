@@ -1,32 +1,73 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
 import { signIn, signUp } from "@/lib/actions/auth";
-import type { AuthState } from "@/lib/actions/auth";
-
-function SubmitButton({ type }: { type: "login" | "signup" }) {
-  const { pending } = useFormStatus();
-  
-  return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? "Loading..." : type === "login" ? "Sign In" : "Sign Up"}
-    </Button>
-  );
-}
+import { useAuthRedirect } from "@/lib/hooks/use-auth-redirect";
+import { Loader2 } from "lucide-react";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
 interface AuthFormProps {
   type: "login" | "signup";
 }
 
-export function AuthForm({ type }: AuthFormProps) {
-  const [state, formAction] = useFormState<AuthState, FormData>(
-    type === "login" ? signIn : signUp,
-    {}
+interface AuthState {
+  error?: string;
+}
+
+function SubmitButton({ type }: { type: "login" | "signup" }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          {type === "login" ? "Signing in..." : "Creating account..."}
+        </>
+      ) : (
+        type === "login" ? "Sign In" : "Sign Up"
+      )}
+    </Button>
   );
+}
+
+export function AuthForm({ type }: AuthFormProps) {
+  const { toast } = useToast();
+  const { isLoading: isCheckingAuth } = useAuthRedirect();
+  const [state, formAction] = useActionState<AuthState, FormData>(
+    async (prevState, formData) => {
+      try {
+        const action = type === "login" ? signIn : signUp;
+        await action(prevState, formData);
+        return { error: undefined };
+      } catch (error) {
+        return { 
+          error: error instanceof Error ? error.message : "An error occurred" 
+        };
+      }
+    },
+    { error: undefined }
+  );
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (state?.error) {
+    toast({
+      title: "Error",
+      description: state.error,
+      variant: "destructive",
+    });
+  }
 
   return (
     <form action={formAction} className="space-y-4 w-full max-w-sm">
@@ -49,18 +90,6 @@ export function AuthForm({ type }: AuthFormProps) {
           required
         />
       </div>
-      
-      {state.error && (
-        <Alert variant="destructive">
-          <AlertDescription>{state.error}</AlertDescription>
-        </Alert>
-      )}
-      
-      {state.success && (
-        <Alert>
-          <AlertDescription>{state.success}</AlertDescription>
-        </Alert>
-      )}
       
       <SubmitButton type={type} />
     </form>

@@ -3,9 +3,20 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { LogOut } from "lucide-react";
+import { LogOut, Settings, HelpCircle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export function Header() {
+interface HeaderProps {
+  children?: React.ReactNode;
+}
+
+export function Header({ children }: HeaderProps) {
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -14,12 +25,46 @@ export function Header() {
   };
 
   return (
-    <header className="h-14 border-b px-6 flex items-center justify-between">
+    <header className="h-14 border-b px-6 flex items-center justify-between bg-white dark:bg-gray-800">
       <h1 className="text-lg font-semibold">Dashboard</h1>
-      <Button variant="ghost" size="sm" onClick={handleSignOut}>
-        <LogOut className="h-4 w-4 mr-2" />
-        Sign out
-      </Button>
+      
+      <div className="flex items-center gap-4">
+        {children}
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <HelpCircle className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>
+              Documentation
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Support
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => router.push("/dashboard/settings")}>
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }

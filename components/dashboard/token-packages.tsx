@@ -6,14 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2, Check, Zap } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 
 export function TokenPackages() {
-  const [loading, setLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handlePurchase = async (packageId: string) => {
-    setLoading(packageId);
-    try {
+  const { mutate: createCheckoutSession, isPending: isLoading } = useMutation({
+    mutationFn: async (packageId: string) => {
       const response = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
@@ -22,23 +21,24 @@ export function TokenPackages() {
         body: JSON.stringify({ packageId }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create checkout session');
       }
 
+      return response.json();
+    },
+    onSuccess: (data) => {
       window.location.href = data.url;
-    } catch (error: any) {
+    },
+    onError: (error: Error) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to initiate purchase',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(null);
     }
-  };
+  });
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -63,11 +63,11 @@ export function TokenPackages() {
               ))}
             </ul>
             <Button
-              onClick={() => handlePurchase(package_.id)}
-              disabled={loading === package_.id}
+              onClick={() => createCheckoutSession(package_.id)}
+              disabled={isLoading}
               className="w-full"
             >
-              {loading === package_.id ? (
+              {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
