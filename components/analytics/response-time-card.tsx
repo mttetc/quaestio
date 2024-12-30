@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Loader2, TrendingDown, TrendingUp } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 interface ResponseTimeData {
   averageHours: number;

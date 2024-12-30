@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { signIn, signUp } from "@/lib/actions/auth";
-import { useAuthRedirect } from "@/lib/hooks/use-auth-redirect";
+import { signIn, signUp } from "@/lib/core/auth/actions";
 import { Loader2 } from "lucide-react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
@@ -37,7 +36,6 @@ function SubmitButton({ type }: { type: "login" | "signup" }) {
 
 export function AuthForm({ type }: AuthFormProps) {
   const { toast } = useToast();
-  const { isLoading: isCheckingAuth } = useAuthRedirect();
   const [state, formAction] = useActionState<AuthState, FormData>(
     async (prevState, formData) => {
       try {
@@ -52,14 +50,6 @@ export function AuthForm({ type }: AuthFormProps) {
     },
     { error: undefined }
   );
-
-  if (isCheckingAuth) {
-    return (
-      <div className="flex justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   if (state?.error) {
     toast({

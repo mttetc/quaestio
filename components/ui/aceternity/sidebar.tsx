@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 import { Mail } from "lucide-react";
 import { mainNavItems } from "@/components/dashboard/nav-items";
 

@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { DateRange } from "react-day-picker";
-import { generateHeatmapCellKey } from '@/lib/utils/key-generation';
-import { cn } from "@/lib/utils";
+import { generateHeatmapCellKey } from '@/lib/shared/utils/key-generation';
+import { cn } from "@/lib/shared/utils";
 
 interface SentimentData {
   date: string;

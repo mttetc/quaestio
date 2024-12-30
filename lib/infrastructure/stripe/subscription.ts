@@ -1,6 +1,6 @@
 import { db } from '@/lib/core/db';
 import { users } from '@/lib/core/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { SUBSCRIPTION_TIERS } from '@/lib/shared/config/subscription';
 
 export async function checkUserQuota(userId: string): Promise<boolean> {
@@ -33,7 +33,7 @@ export async function checkUserQuota(userId: string): Promise<boolean> {
 export async function incrementUserUsage(userId: string, count: number = 1) {
   await db.update(users)
     .set({ 
-      monthlyUsage: (u) => `${u.monthlyUsage} + ${count}`,
+      monthlyUsage: sql`${users.monthlyUsage} + ${count}`,
     })
     .where(eq(users.id, userId));
 }

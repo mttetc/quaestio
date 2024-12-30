@@ -8,6 +8,7 @@ import {
   integer,
   jsonb
 } from 'drizzle-orm/pg-core';
+import { UserRole } from '../config/roles';
 
 export type QAMetadata = {
   date: Date;
@@ -19,13 +20,13 @@ export type QAMetadata = {
 export const users = pgTable('users', {
   id: uuid('id').primaryKey(),
   email: text('email').notNull(),
-  role: text('role').notNull().default('free'),
+  role: text('role', { enum: ['user', 'admin'] }).notNull().default('user'),
   availableTokens: integer('available_tokens').notNull().default(0),
   monthlyUsage: integer('monthly_usage').notNull().default(0),
   lastUsageReset: timestamp('last_usage_reset').notNull().defaultNow(),
   hasCompletedOnboarding: boolean('has_completed_onboarding').notNull().default(false),
   stripeCustomerId: text('stripe_customer_id'),
-  subscriptionTier: text('subscription_tier').notNull().default('free'),
+  subscriptionTier: text('subscription_tier', { enum: ['FREE', 'PRO', 'ENTERPRISE'] }).notNull().default('FREE'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

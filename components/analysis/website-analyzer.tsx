@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Globe, Loader2 } from "lucide-react";
-import { ContentAnalysis } from '@/lib/analysis/content-comparison';
+import { ContentAnalysis } from '@/lib/features/analytics/core/content-comparison';
+import { ContentGapsDisplay } from '@/components/analysis/content-gaps-display';
 
 export function WebsiteAnalyzer() {
   const [url, setUrl] = useState('');

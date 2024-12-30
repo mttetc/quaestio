@@ -1,7 +1,7 @@
 'use client';
 
+import { supabase } from '@/lib/infrastructure/supabase/client';
 import { EmailLinkingStatus } from './types';
-import { supabase } from '../supabase/client';
 
 export async function checkEmailLinkingStatus(userId: string): Promise<EmailLinkingStatus> {
   const { data } = await supabase.from('email_accounts')

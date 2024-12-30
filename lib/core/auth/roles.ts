@@ -1,13 +1,14 @@
-import { ROLE_PERMISSIONS, type UserRole } from '../config/roles';
 import { db } from '../db';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { UserRole } from '@/lib/core/config/roles';
+import { SUBSCRIPTION_TIERS } from '@/lib/shared/config/subscription';
 
 export async function getUserRole(userId: string): Promise<UserRole> {
   const user = await db.query.users.findFirst({
     where: eq(users.id, userId),
   });
-  return user?.role ?? 'free';
+  return user?.role ?? 'user';
 }
 
 export async function canConnectMoreEmails(userId: string): Promise<boolean> {
@@ -17,13 +18,13 @@ export async function canConnectMoreEmails(userId: string): Promise<boolean> {
   
   if (!user) return false;
   
-  const permissions = ROLE_PERMISSIONS[user.role];
+  const tier = SUBSCRIPTION_TIERS[user.subscriptionTier];
   const connectedEmails = await db.query.emailAccounts.findMany({
     where: eq(users.id, userId),
   });
   
-  return permissions.maxEmailAccounts === -1 || 
-         connectedEmails.length < permissions.maxEmailAccounts;
+  return tier.maxEmailAccounts === -1 || 
+         connectedEmails.length < tier.maxEmailAccounts;
 }
 
 export async function hasExtractionQuota(userId: string): Promise<boolean> {
@@ -33,10 +34,10 @@ export async function hasExtractionQuota(userId: string): Promise<boolean> {
   
   if (!user) return false;
   
-  const permissions = ROLE_PERMISSIONS[user.role];
+  const tier = SUBSCRIPTION_TIERS[user.subscriptionTier];
   
-  // Unlimited quota for certain roles
-  if (permissions.monthlyExtractionsLimit === -1) return true;
+  // Unlimited quota for certain tiers
+  if (tier.monthlyQuota === -1) return true;
   
   // Reset monthly quota if it's a new month
   const now = new Date();
@@ -53,5 +54,5 @@ export async function hasExtractionQuota(userId: string): Promise<boolean> {
     return true;
   }
   
-  return user.monthlyUsage < permissions.monthlyExtractionsLimit;
+  return user.monthlyUsage < tier.monthlyQuota;
 }

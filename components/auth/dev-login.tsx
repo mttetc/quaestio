@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { signInWithEmail } from "@/lib/auth/client";
+import { signInWithEmail } from "@/lib/core/auth/actions";
 import { useRouter } from "next/navigation";
 
 const DEV_ADMIN_EMAIL = "admin@example.com";

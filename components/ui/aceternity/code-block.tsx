@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 import { Check, Copy } from "lucide-react";
 
 export const CodeBlock = ({

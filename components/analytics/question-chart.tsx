@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DateRange } from "react-day-picker";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 interface QuestionData {
   id: string;

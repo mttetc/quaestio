@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 import { useEffect, useState } from "react";
 
 export const SparklesCore = ({

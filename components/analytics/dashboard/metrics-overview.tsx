@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Clock, BarChart2, ThumbsUp, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 interface MetricCardProps {
   title: string;
