@@ -2,26 +2,62 @@
 
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
-import { DateRangePicker } from "./date-range-picker";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DatePickerWithRange } from "../ui/date-picker";
 import { QuestionChart } from "./question-chart";
 import { QuestionList } from "./question-list";
 import { ResponseTimeCard } from "./response-time-card";
 import { VolumeByTagCard } from "./volume-by-tag-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const DEFAULT_DATE_RANGE: DateRange = {
+  from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+  to: new Date(),
+};
+
+interface DashboardTab {
+  value: string;
+  label: string;
+  content: React.ReactNode;
+}
 
 export function AnalyticsDashboard() {
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    to: new Date()
-  });
+  const [dateRange, setDateRange] = useState<DateRange>(DEFAULT_DATE_RANGE);
+
+  const handleDateChange = (date: DateRange | undefined) => {
+    if (date) {
+      setDateRange(date);
+    }
+  };
+
+  const tabs: DashboardTab[] = [
+    {
+      value: "trends",
+      label: "Trends",
+      content: (
+        <Card>
+          <CardHeader>
+            <CardTitle>Question Trends</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <QuestionChart dateRange={dateRange} />
+          </CardContent>
+        </Card>
+      ),
+    },
+    {
+      value: "questions",
+      label: "Top Questions",
+      content: <QuestionList dateRange={dateRange} />,
+    },
+  ];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <DateRangePicker
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
+        <DatePickerWithRange
+          date={dateRange}
+          onDateChange={handleDateChange}
         />
       </div>
 
@@ -32,22 +68,17 @@ export function AnalyticsDashboard() {
 
       <Tabs defaultValue="trends">
         <TabsList>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="questions">Top Questions</TabsTrigger>
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
-        <TabsContent value="trends" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Question Trends</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <QuestionChart dateRange={dateRange} />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="questions">
-          <QuestionList dateRange={dateRange} />
-        </TabsContent>
+        {tabs.map((tab) => (
+          <TabsContent key={tab.value} value={tab.value} className="space-y-6">
+            {tab.content}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

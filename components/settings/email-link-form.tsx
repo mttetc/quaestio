@@ -1,72 +1,57 @@
 "use client";
 
-import { useState } from 'react';
+import * as React from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { emailConnectionSchema } from '@/lib/email/validation';
 import { useToast } from "@/components/ui/use-toast";
 import { Mail, Loader2, ExternalLink } from "lucide-react";
+import { connectEmail } from "@/lib/actions/email";
+import type { EmailFormState } from "@/lib/actions/email";
+
+function ConnectButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Connecting...
+        </>
+      ) : (
+        <>
+          <Mail className="mr-2 h-4 w-4" />
+          Connect Gmail
+        </>
+      )}
+    </Button>
+  );
+}
+
+const initialState: EmailFormState = {};
 
 export function EmailLinkForm() {
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [appPassword, setAppPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [state, dispatch] = useFormState(connectEmail, initialState);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const validatedData = emailConnectionSchema.parse({
-        email,
-        appPassword
+  // Show toast when status changes
+  React.useEffect(() => {
+    if (state.error) {
+      toast({
+        title: "Error",
+        description: state.error,
+        variant: "destructive",
       });
-
-      const response = await fetch('/api/email/connect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validatedData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to connect email account');
-      }
-
+    } else if (state.success) {
       toast({
         title: "Success",
         description: "Email account connected successfully. You can now start using it.",
       });
-
-      setEmail("");
-      setAppPassword("");
-    } catch (error) {
-      console.error('Email connection error:', error);
-      
-      let errorMessage = 'Failed to connect email account';
-      if (error instanceof Error) {
-        if (error.message.includes('IMAP')) {
-          errorMessage = 'Failed to connect to Gmail. Please verify your app password and ensure IMAP is enabled.';
-        } else if (error.message.includes('already connected')) {
-          errorMessage = 'This email account is already connected to your account.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [state, toast]);
 
   return (
     <Card>
@@ -82,14 +67,13 @@ export function EmailLinkForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={dispatch} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Gmail Address</Label>
             <Input
               id="email"
+              name="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="your.email@gmail.com"
               required
               pattern="[a-z0-9._%+-]+@gmail\.com$"
@@ -104,9 +88,8 @@ export function EmailLinkForm() {
             <Label htmlFor="appPassword">App Password</Label>
             <Input
               id="appPassword"
+              name="appPassword"
               type="password"
-              value={appPassword}
-              onChange={(e) => setAppPassword(e.target.value)}
               placeholder="16-character app password"
               required
               minLength={16}
@@ -119,19 +102,7 @@ export function EmailLinkForm() {
             </p>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <Mail className="mr-2 h-4 w-4" />
-                Connect Gmail
-              </>
-            )}
-          </Button>
+          <ConnectButton />
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">

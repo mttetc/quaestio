@@ -5,14 +5,19 @@ import { SentimentHeatmap } from "@/components/analysis/sentiment-heatmap";
 import { QuestionChart } from "@/components/analytics/question-chart";
 import { ResponseTimeCard } from "@/components/analytics/response-time-card";
 import { VolumeByTagCard } from "@/components/analytics/volume-by-tag-card";
-import { DateRangePicker } from "@/components/analytics/date-range-picker";
 import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from "@/components/ui/date-picker";
 
 export default function InsightsPage() {
-    const [dateRange, setDateRange] = useState<DateRange>({
+    const defaultDateRange = {
         from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
         to: new Date(),
-    });
+    };
+    const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange);
+
+    const handleDateRangeChange = (range: DateRange | undefined) => {
+        setDateRange(range ?? defaultDateRange);
+    };
 
     return (
         <div className="space-y-6">
@@ -22,7 +27,7 @@ export default function InsightsPage() {
             </div>
 
             <div className="flex justify-end">
-                <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
+                <DatePickerWithRange date={dateRange} onDateChange={handleDateRangeChange} />
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">

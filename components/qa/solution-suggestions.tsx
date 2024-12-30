@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lightbulb, Clock, ArrowRight, Shield } from 'lucide-react';
 import type { Solution } from '@/lib/ai/solution-generator';
+import { generateStepKey, generateMeasureKey } from '@/lib/utils/key-generation';
 
 interface SolutionSuggestionsProps {
   qaId: string;
@@ -64,8 +65,8 @@ export function SolutionSuggestions({ qaId }: SolutionSuggestionsProps) {
           <div className="space-y-4">
             <h4 className="font-medium">Implementation Steps:</h4>
             <ol className="list-decimal list-inside space-y-2">
-              {solution.steps.map((step, index) => (
-                <li key={index} className="text-muted-foreground">{step}</li>
+              {solution.steps.map((step) => (
+                <li key={generateStepKey(step)} className="text-muted-foreground">{step}</li>
               ))}
             </ol>
           </div>
@@ -76,8 +77,8 @@ export function SolutionSuggestions({ qaId }: SolutionSuggestionsProps) {
               Preventive Measures:
             </h4>
             <ul className="list-disc list-inside space-y-2">
-              {solution.preventiveMeasures.map((measure, index) => (
-                <li key={index} className="text-muted-foreground">{measure}</li>
+              {solution.preventiveMeasures.map((measure) => (
+                <li key={generateMeasureKey(measure)} className="text-muted-foreground">{measure}</li>
               ))}
             </ul>
           </div>

@@ -19,6 +19,7 @@ export interface EmailSearchParams {
 }
 
 export interface QAExtractionResult {
+  id: string;
   emailId: string;
   question: string;
   answer: string;

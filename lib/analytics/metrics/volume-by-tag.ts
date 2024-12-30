@@ -4,6 +4,7 @@ import { and, between, count, eq } from 'drizzle-orm';
 import { DateRange } from '../types';
 
 export interface TagVolume {
+  id: string;
   name: string;
   value: number;
 }
@@ -30,8 +31,11 @@ export async function getVolumeByTag(
     )
     .groupBy(qaEntries.tags);
 
-  return volumes.map(v => ({
-    name: v.tag || 'Uncategorized',
-    value: Number(v.count),
-  }));
+  return volumes.flatMap(v => 
+    (v.tag || ['Uncategorized']).map(tag => ({
+      id: `${tag}-volume`,
+      name: tag,
+      value: Number(v.count),
+    }))
+  );
 }

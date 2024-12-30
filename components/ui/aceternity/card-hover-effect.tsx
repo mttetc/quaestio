@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
 interface Item {
+  id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
@@ -15,15 +16,15 @@ export const HoverEffect = ({ items }: { items: Item[] }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-      {items.map((item, idx) => (
+      {items.map((item) => (
         <div
-          key={idx}
+          key={item.id}
           className="relative group block p-2 h-full w-full"
-          onMouseEnter={() => setHoveredIndex(idx)}
+          onMouseEnter={() => setHoveredIndex(items.indexOf(item))}
           onMouseLeave={() => setHoveredIndex(null)}
         >
           <AnimatePresence>
-            {hoveredIndex === idx && (
+            {hoveredIndex === items.indexOf(item) && (
               <motion.span
                 className="absolute inset-0 h-full w-full bg-gradient-to-r from-neutral-800 via-neutral-800/90 to-neutral-900 block rounded-3xl"
                 layoutId="hoverBackground"

@@ -8,19 +8,31 @@ import {
   Database
 } from 'lucide-react';
 
-export const mainNavItems = [
+interface NavItem {
+  id: string;
+  name: string;
+  link: string;
+  icon: React.ReactNode;
+  description?: string;
+  subItems?: NavItem[];
+}
+
+export const mainNavItems: NavItem[] = [
   {
+    id: 'email',
     name: "Email Q&A",
     link: "#email",
     icon: <Mail className="w-4 h-4" />,
     subItems: [
       {
+        id: 'extract',
         name: "Extract Q&As",
         link: "/dashboard/extract",
         icon: <Search className="w-4 h-4" />,
         description: "Process email conversations"
       },
       {
+        id: 'qa-library',
         name: "Q&A Library",
         link: "/dashboard/qa",
         icon: <Database className="w-4 h-4" />,
@@ -29,17 +41,20 @@ export const mainNavItems = [
     ]
   },
   {
+    id: 'knowledge',
     name: "Knowledge Base",
     link: "#knowledge",
     icon: <BookOpen className="w-4 h-4" />,
     subItems: [
       {
+        id: 'faq',
         name: "FAQ Builder",
         link: "/dashboard/knowledge/faq",
         icon: <FileText className="w-4 h-4" />,
         description: "Create FAQ pages"
       },
       {
+        id: 'docs',
         name: "Documentation",
         link: "/dashboard/knowledge/docs",
         icon: <BookOpen className="w-4 h-4" />,
@@ -48,17 +63,20 @@ export const mainNavItems = [
     ]
   },
   {
+    id: 'analytics',
     name: "Analytics",
     link: "#analytics",
     icon: <BarChart2 className="w-4 h-4" />,
     subItems: [
       {
+        id: 'overview',
         name: "Overview",
         link: "/dashboard/insights",
         icon: <BarChart2 className="w-4 h-4" />,
         description: "Key metrics and trends"
       },
       {
+        id: 'content-analysis',
         name: "Content Analysis",
         link: "/dashboard/insights/analysis",
         icon: <FileText className="w-4 h-4" />,
@@ -67,6 +85,7 @@ export const mainNavItems = [
     ]
   },
   {
+    id: 'settings',
     name: "Settings",
     link: "/dashboard/settings",
     icon: <Settings className="w-4 h-4" />,

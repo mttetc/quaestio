@@ -11,6 +11,7 @@ export interface AnalyticsMetric {
 }
 
 export interface TimeSeriesData {
+  id: string;
   date: Date;
   value: number;
   category?: string;
@@ -34,6 +35,7 @@ export interface ContentMetrics extends AnalyticsMetric {
 }
 
 export interface ContentGap {
+  id: string;
   topic: string;
   frequency: number;
   importance: number;

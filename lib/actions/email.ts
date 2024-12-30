@@ -1,108 +1,46 @@
 "use server";
 
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { db } from "@/lib/db";
-import { emailAccounts } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
-import { testConnection } from "@/lib/email/imap-connection";
-import { encryptPassword } from "@/lib/auth/encryption";
-import { ImapFlow } from "imapflow";
+import { emailConnectionSchema } from '@/lib/email/validation';
 
-export async function connectEmailAccount(email: string, appPassword: string) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get(name: string) {
-                    return cookieStore.get(name)?.value;
-                },
-            },
-        }
-    );
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    // Test connection first
-    const client = new ImapFlow({
-        host: "imap.gmail.com",
-        port: 993,
-        secure: true,
-        auth: {
-            user: email,
-            pass: appPassword,
-        },
-    });
-    await testConnection(client);
-
-    // Store encrypted credentials
-    const encryptedPassword = encryptPassword(appPassword);
-
-    await db.insert(emailAccounts).values({
-        userId: user!.id,
-        email,
-        provider: "gmail",
-        accessToken: encryptedPassword,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-    });
-
-    return { success: true };
+export interface EmailFormState {
+  error?: string;
+  success?: boolean;
 }
 
-export async function getConnectedAccounts() {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get(name: string) {
-                    return cookieStore.get(name)?.value;
-                },
-            },
-        }
-    );
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    const accounts = await db.query.emailAccounts.findMany({
-        where: eq(emailAccounts.userId, user!.id),
-        columns: {
-            id: true,
-            email: true,
-            provider: true,
-            lastSynced: true,
-            createdAt: true,
-        },
+export async function connectEmail(_: EmailFormState, formData: FormData): Promise<EmailFormState> {
+  try {
+    const validatedData = emailConnectionSchema.parse({
+      email: formData.get("email"),
+      appPassword: formData.get("appPassword")
     });
 
-    return accounts;
-}
+    const response = await fetch('/api/email/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validatedData),
+    });
 
-export async function removeEmailAccount(accountId: string) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                get(name: string) {
-                    return cookieStore.get(name)?.value;
-                },
-            },
-        }
-    );
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
+    const data = await response.json();
 
-    await db.delete(emailAccounts).where(and(eq(emailAccounts.id, accountId), eq(emailAccounts.userId, user.id)));
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to connect email account');
+    }
 
     return { success: true };
+  } catch (error) {
+    console.error('Email connection error:', error);
+    
+    let errorMessage = 'Failed to connect email account';
+    if (error instanceof Error) {
+      if (error.message.includes('IMAP')) {
+        errorMessage = 'Failed to connect to Gmail. Please verify your app password and ensure IMAP is enabled.';
+      } else if (error.message.includes('already connected')) {
+        errorMessage = 'This email account is already connected to your account.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+
+    return { error: errorMessage };
+  }
 }

@@ -68,12 +68,12 @@ export function DocumentationBuilder() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Documentation Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form action={formAction} className="space-y-4">
+      <form action={formAction} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Documentation Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -92,42 +92,39 @@ export function DocumentationBuilder() {
                 placeholder="Enter documentation description"
               />
             </div>
+          </CardContent>
+        </Card>
 
-            <GenerateButton />
-          </form>
-        </CardContent>
-      </Card>
-
-      <Tabs defaultValue="source">
-        <TabsList>
-          <TabsTrigger value="source">Source Q&As</TabsTrigger>
-          <TabsTrigger value="preview">Preview</TabsTrigger>
-        </TabsList>
-        <TabsContent value="source">
-          <QAList 
-            selectable 
-            onSelect={(qaIds) => {
-              const formData = new FormData();
-              formData.append("selectedQAs", JSON.stringify(qaIds));
-              formAction(formData);
-            }}
-            selectedIds={state?.selectedQAs}
-          />
-        </TabsContent>
-        <TabsContent value="preview">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="prose max-w-none">
-                <h1>{state?.title || 'Documentation Title'}</h1>
-                {state?.description && <p>{state.description}</p>}
-                {state?.preview && (
-                  <div dangerouslySetInnerHTML={{ __html: state.preview }} />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        <Tabs defaultValue="source">
+          <TabsList>
+            <TabsTrigger value="source">Source Q&As</TabsTrigger>
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+          </TabsList>
+          <TabsContent value="source">
+            <QAList 
+              selectable 
+              name="selectedQAs"
+              selectedIds={state?.selectedQAs}
+            />
+            <div className="mt-4">
+              <GenerateButton />
+            </div>
+          </TabsContent>
+          <TabsContent value="preview">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="prose max-w-none">
+                  <h1>{state?.title || 'Documentation Title'}</h1>
+                  {state?.description && <p>{state.description}</p>}
+                  {state?.preview && (
+                    <div dangerouslySetInnerHTML={{ __html: state.preview }} />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </form>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DateRangePicker } from "@/components/analytics/date-range-picker";
+import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { Mail, Loader2 } from "lucide-react";
 import { extractQAs } from "@/lib/actions/qa";
 import { DateRange } from "react-day-picker";
@@ -56,20 +56,15 @@ const initialState: FormState = {
 async function formAction(prevState: FormState, formData: FormData): Promise<FormState> {
     "use server";
 
-    const emailId = (formData.get("emailId") as string) || prevState.emailId;
-    const startDate = formData.get("startDate") as string;
-    const endDate = formData.get("endDate") as string;
-
-    const dateRange = {
-        from: startDate ? new Date(startDate) : prevState.dateRange.from,
-        to: endDate ? new Date(endDate) : prevState.dateRange.to,
-    };
+    const emailId = formData.get("emailId") as string;
+    const dateRange = formData.get("dateRange") as string;
+    const range = dateRange ? JSON.parse(dateRange) as DateRange : prevState.dateRange;
 
     const result = await extractQAs(formData);
 
     return {
-        emailId,
-        dateRange,
+        emailId: emailId || prevState.emailId,
+        dateRange: range,
         status: result.error ? { error: result.error } : { success: true, count: result.count },
     };
 }
@@ -103,13 +98,6 @@ export function ExtractionForm() {
         }
     }, [state.status, toast]);
 
-    const handleSubmit = (formData: FormData) => {
-        formData.append("emailId", state.emailId);
-        formData.append("startDate", state.dateRange.from?.toISOString() || "");
-        formData.append("endDate", state.dateRange.to?.toISOString() || "");
-        dispatch(formData);
-    };
-
     return (
         <Card>
             <CardHeader>
@@ -117,24 +105,12 @@ export function ExtractionForm() {
                 <CardDescription>Select an email account and date range to extract Q&As</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <form action={handleSubmit} className="space-y-6">
+                <form action={dispatch} className="space-y-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Email Account</label>
-                        <Select
-                            value={state.emailId}
-                            onValueChange={(value) => {
-                                const formData = new FormData();
-                                formData.append("emailId", value);
-                                formData.append("startDate", state.dateRange.from?.toISOString() || "");
-                                formData.append("endDate", state.dateRange.to?.toISOString() || "");
-                                dispatch(formData);
-                            }}
-                            disabled={isLoading}
-                        >
+                        <label htmlFor="emailId" className="text-sm font-medium">Email Account</label>
+                        <Select name="emailId" disabled={isLoading}>
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select an email account">
-                                    {emailAccounts?.find((acc: EmailAccount) => acc.id === state.emailId)?.email}
-                                </SelectValue>
+                                <SelectValue placeholder="Select an email account" />
                             </SelectTrigger>
                             <SelectContent>
                                 {emailAccounts?.map((account: EmailAccount) => (
@@ -150,16 +126,11 @@ export function ExtractionForm() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Date Range</label>
-                        <DateRangePicker
-                            dateRange={state.dateRange}
-                            onDateRangeChange={(range) => {
-                                const formData = new FormData();
-                                formData.append("emailId", state.emailId);
-                                formData.append("startDate", range.from?.toISOString() || "");
-                                formData.append("endDate", range.to?.toISOString() || "");
-                                dispatch(formData);
-                            }}
+                        <label htmlFor="dateRange" className="text-sm font-medium">Date Range</label>
+                        <DatePickerWithRange
+                            id="dateRange"
+                            name="dateRange"
+                            date={state.dateRange}
                         />
                     </div>
 

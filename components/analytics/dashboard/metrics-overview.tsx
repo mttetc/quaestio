@@ -3,123 +3,153 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Clock, BarChart2, LineChart, ThumbsUp } from "lucide-react";
-import { DateRange } from "@/lib/analytics/types";
+import { Clock, BarChart2, ThumbsUp, Loader2 } from "lucide-react";
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
+
+interface MetricCardProps {
+  title: string;
+  icon: React.ElementType;
+  isLoading?: boolean;
+  children: React.ReactNode;
+}
+
+interface ResponseMetrics {
+  averageTimeHours: number;
+  totalResponses: number;
+}
+
+interface VolumeMetrics {
+  totalQuestions: number;
+  byCategory: Record<string, number>;
+}
+
+interface QualityMetrics {
+  helpfulnessScore: number;
+  averageConfidence: number;
+  sentimentScore: number;
+}
 
 interface MetricsOverviewProps {
   dateRange: DateRange;
+  className?: string;
 }
 
-export function MetricsOverview({ dateRange }: MetricsOverviewProps) {
-  const { data: responseMetrics } = useQuery({
-    queryKey: ['responseMetrics', dateRange],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        startDate: dateRange.startDate.toISOString(),
-        endDate: dateRange.endDate.toISOString(),
-      });
-      const response = await fetch(`/api/analytics/metrics/response?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch response metrics');
-      return response.json();
-    },
-  });
+function getTopCategories(byCategory: Record<string, number>): Array<[string, number]> {
+  return Object.entries(byCategory)
+    .reduce<Array<[string, number]>>((acc, entry) => [...acc, entry], [])
+    .sort(([, a], [, b]) => b - a)
+    .filter((_, index) => index < 3);
+}
 
-  const { data: volumeMetrics } = useQuery({
-    queryKey: ['volumeMetrics', dateRange],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        startDate: dateRange.startDate.toISOString(),
-        endDate: dateRange.endDate.toISOString(),
-      });
-      const response = await fetch(`/api/analytics/metrics/volume?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch volume metrics');
-      return response.json();
-    },
-  });
+function MetricCard({ title, icon: Icon, isLoading, children }: MetricCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm text-muted-foreground">Loading...</span>
+          </div>
+        ) : (
+          children
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-  const { data: qualityMetrics } = useQuery({
-    queryKey: ['qualityMetrics', dateRange],
+function useMetricsQuery<T>(endpoint: string, dateRange: DateRange) {
+  return useQuery<T>({
+    queryKey: [endpoint, dateRange],
     queryFn: async () => {
+      if (!dateRange.from || !dateRange.to) {
+        throw new Error("Date range is required");
+      }
+
       const params = new URLSearchParams({
-        startDate: dateRange.startDate.toISOString(),
-        endDate: dateRange.endDate.toISOString(),
+        startDate: dateRange.from.toISOString(),
+        endDate: dateRange.to.toISOString(),
       });
-      const response = await fetch(`/api/analytics/metrics/quality?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch quality metrics');
+
+      const response = await fetch(`/api/analytics/metrics/${endpoint}?${params}`);
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || `Failed to fetch ${endpoint} metrics`);
+      }
+
       return response.json();
     },
+    enabled: !!(dateRange.from && dateRange.to),
   });
+}
+
+export function MetricsOverview({ dateRange, className }: MetricsOverviewProps) {
+  const { data: responseMetrics, isLoading: isLoadingResponse } = 
+    useMetricsQuery<ResponseMetrics>("response", dateRange);
+
+  const { data: volumeMetrics, isLoading: isLoadingVolume } = 
+    useMetricsQuery<VolumeMetrics>("volume", dateRange);
+
+  const { data: qualityMetrics, isLoading: isLoadingQuality } = 
+    useMetricsQuery<QualityMetrics>("quality", dateRange);
+
+  const topCategories = volumeMetrics?.byCategory 
+    ? getTopCategories(volumeMetrics.byCategory)
+    : [];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Response Time</CardTitle>
-          <Clock className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {responseMetrics?.averageTimeHours.toFixed(1)}h
-          </div>
-          <Progress 
-            value={Math.min(100, (responseMetrics?.averageTimeHours || 0) / 24 * 100)} 
-            className="mt-2"
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            {responseMetrics?.totalResponses} total responses
-          </p>
-        </CardContent>
-      </Card>
+    <div className={cn("grid gap-4 md:grid-cols-3", className)}>
+      <MetricCard title="Response Time" icon={Clock} isLoading={isLoadingResponse}>
+        <div className="text-2xl font-bold">
+          {responseMetrics?.averageTimeHours.toFixed(1)}h
+        </div>
+        <Progress 
+          value={Math.min(100, (responseMetrics?.averageTimeHours || 0) / 24 * 100)} 
+          className="mt-2"
+        />
+        <p className="text-xs text-muted-foreground mt-2">
+          {responseMetrics?.totalResponses} total responses
+        </p>
+      </MetricCard>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Volume</CardTitle>
-          <BarChart2 className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {volumeMetrics?.totalQuestions || 0}
-          </div>
-          <div className="mt-4 space-y-2">
-            {volumeMetrics?.byCategory && Object.entries(volumeMetrics.byCategory)
-              .sort(([, a], [, b]) => (b as number) - (a as number))
-              .slice(0, 3)
-              .map(([category, count]) => (
-                <div key={category} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{category}</span>
-                  <span>{count}</span>
-                </div>
-              ))
-            }
-          </div>
-        </CardContent>
-      </Card>
+      <MetricCard title="Volume" icon={BarChart2} isLoading={isLoadingVolume}>
+        <div className="text-2xl font-bold">
+          {volumeMetrics?.totalQuestions || 0}
+        </div>
+        <div className="mt-4 space-y-2">
+          {topCategories.map(([category, count]) => (
+            <div key={category} className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{category}</span>
+              <span>{count}</span>
+            </div>
+          ))}
+        </div>
+      </MetricCard>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium">Quality Score</CardTitle>
-          <ThumbsUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            {Math.round((qualityMetrics?.helpfulnessScore || 0) * 100)}%
+      <MetricCard title="Quality Score" icon={ThumbsUp} isLoading={isLoadingQuality}>
+        <div className="text-2xl font-bold">
+          {Math.round((qualityMetrics?.helpfulnessScore || 0) * 100)}%
+        </div>
+        <Progress 
+          value={Math.round((qualityMetrics?.helpfulnessScore || 0) * 100)} 
+          className="mt-2"
+        />
+        <div className="mt-4 space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Confidence</span>
+            <span>{Math.round((qualityMetrics?.averageConfidence || 0) * 100)}%</span>
           </div>
-          <Progress 
-            value={Math.round((qualityMetrics?.helpfulnessScore || 0) * 100)} 
-            className="mt-2"
-          />
-          <div className="mt-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Confidence</span>
-              <span>{Math.round((qualityMetrics?.averageConfidence || 0) * 100)}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Sentiment</span>
-              <span>{Math.round((qualityMetrics?.sentimentScore || 0) * 100)}%</span>
-            </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Sentiment</span>
+            <span>{Math.round((qualityMetrics?.sentimentScore || 0) * 100)}%</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </MetricCard>
     </div>
   );
 }

@@ -2,19 +2,20 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { QAExtractionResult } from '@/lib/email/types';
+import { generateTagKey } from '@/lib/utils/key-generation';
 
 interface QAListProps {
   selectable?: boolean;
-  onSelect?: (selectedIds: string[]) => void;
   selectedIds?: string[];
+  name?: string;
 }
 
-export function QAList({ selectable = false, onSelect, selectedIds }: QAListProps) {
-  const [selectedIdsState, setSelectedIdsState] = useState<string[]>(selectedIds || []);
+export function QAList({ selectable = false, selectedIds = [], name }: QAListProps) {
+  const [selectedIdsState, setSelectedIdsState] = useState<string[]>(selectedIds);
 
   const { data: qas, isLoading } = useQuery({
     queryKey: ['qas'],
@@ -31,7 +32,6 @@ export function QAList({ selectable = false, onSelect, selectedIds }: QAListProp
       : [...selectedIdsState, id];
     
     setSelectedIdsState(newSelectedIds);
-    onSelect?.(newSelectedIds);
   };
 
   if (isLoading) {
@@ -40,6 +40,13 @@ export function QAList({ selectable = false, onSelect, selectedIds }: QAListProp
 
   return (
     <div className="space-y-4">
+      {selectable && (
+        <input 
+          type="hidden" 
+          name={name} 
+          value={JSON.stringify(selectedIdsState)} 
+        />
+      )}
       {qas?.map((qa: QAExtractionResult) => (
         <Card key={qa.emailId} className="relative">
           {selectable && (
@@ -67,8 +74,8 @@ export function QAList({ selectable = false, onSelect, selectedIds }: QAListProp
 
               {qa.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {qa.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary">
+                  {qa.tags.map((tag) => (
+                    <Badge key={generateTagKey(tag)} variant="secondary">
                       {tag}
                     </Badge>
                   ))}

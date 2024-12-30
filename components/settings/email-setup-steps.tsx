@@ -1,87 +1,103 @@
 "use client";
 
-import { useState } from 'react';
+import * as React from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, Mail, Lock, Key, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { emailConnectionSchema } from '@/lib/email/validation';
+import { connectEmail } from "@/lib/actions/email";
+import type { EmailFormState } from "@/lib/actions/email";
+
+const STEPS = [
+  {
+    title: "Enable IMAP",
+    description: "First, enable IMAP access in your Gmail settings",
+    link: "https://mail.google.com/mail/u/0/#settings/fwdandpop",
+    buttonText: "Open Gmail Settings",
+    icon: Mail
+  },
+  {
+    title: "Enable 2-Step Verification",
+    description: "Set up 2-Step Verification for your Google Account",
+    link: "https://myaccount.google.com/security",
+    buttonText: "Security Settings",
+    icon: Lock
+  },
+  {
+    title: "Generate App Password",
+    description: "Create an App Password specifically for Quaestio",
+    link: "https://myaccount.google.com/apppasswords",
+    buttonText: "App Passwords",
+    icon: Key
+  }
+] as const;
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button 
+      type="submit"
+      className="ml-auto"
+      disabled={pending}
+    >
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Connecting...
+        </>
+      ) : (
+        'Connect Gmail'
+      )}
+    </Button>
+  );
+}
+
+interface StepState extends EmailFormState {
+  step: number;
+}
+
+const initialState: StepState = {
+  step: 1
+};
+
+async function stepAction(state: StepState, formData: FormData): Promise<StepState> {
+  const step = Number(formData.get("step"));
+  
+  // Only process the form on the final step
+  if (step === 3) {
+    const result = await connectEmail(state, formData);
+    if (result.success) {
+      return { ...result, step: 1 }; // Reset to first step on success
+    }
+    return { ...result, step };
+  }
+  
+  return state;
+}
 
 export function EmailSetupSteps() {
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState('');
-  const [appPassword, setAppPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [state, dispatch] = useFormState(stepAction, initialState);
+  const [currentStep, setCurrentStep] = React.useState(1);
+  const step = STEPS[currentStep - 1];
 
-  const steps = [
-    {
-      title: "Enable IMAP",
-      description: "First, enable IMAP access in your Gmail settings",
-      link: "https://mail.google.com/mail/u/0/#settings/fwdandpop",
-      buttonText: "Open Gmail Settings"
-    },
-    {
-      title: "Enable 2-Step Verification",
-      description: "Set up 2-Step Verification for your Google Account",
-      link: "https://myaccount.google.com/security",
-      buttonText: "Security Settings"
-    },
-    {
-      title: "Generate App Password",
-      description: "Create an App Password specifically for Quaestio",
-      link: "https://myaccount.google.com/apppasswords",
-      buttonText: "App Passwords"
-    }
-  ];
-
-  const handleNext = async () => {
-    if (step < 3) {
-      setStep(step + 1);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      
-      // Validate input
-      const validatedData = emailConnectionSchema.parse({
-        email,
-        appPassword
+  React.useEffect(() => {
+    if (state.error) {
+      toast({
+        title: "Error",
+        description: state.error,
+        variant: "destructive",
       });
-
-      const response = await fetch('/api/email/connect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validatedData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to connect email');
-      }
-
+    } else if (state.success) {
       toast({
         title: "Success",
         description: "Email account connected successfully",
       });
-
-      // Reset form
-      setEmail('');
-      setAppPassword('');
-      setStep(1);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to connect email',
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      setCurrentStep(1);
     }
-  };
+  }, [state.error, state.success, toast]);
 
   return (
     <Card>
@@ -89,72 +105,85 @@ export function EmailSetupSteps() {
         <CardTitle>Connect Gmail Account</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="font-medium flex items-center gap-2">
-            {step === 1 && <Mail className="h-4 w-4" />}
-            {step === 2 && <Lock className="h-4 w-4" />}
-            {step === 3 && <Key className="h-4 w-4" />}
-            Step {step}: {steps[step - 1].title}
-          </h3>
-          
-          <p className="text-sm text-muted-foreground">
-            {steps[step - 1].description}
-          </p>
+        <form action={dispatch}>
+          <input type="hidden" name="step" value={currentStep} />
+          <div className="space-y-4">
+            <h3 className="font-medium flex items-center gap-2">
+              <step.icon className="h-4 w-4" />
+              Step {currentStep}: {step.title}
+            </h3>
+            
+            <p className="text-sm text-muted-foreground">
+              {step.description}
+            </p>
 
-          <Button
-            variant="outline"
-            onClick={() => window.open(steps[step - 1].link, '_blank')}
-            className="w-full"
-          >
-            {steps[step - 1].buttonText}
-            <ExternalLink className="ml-2 h-4 w-4" />
-          </Button>
-
-          {step === 3 && (
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder="Gmail Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-              <Input
-                type="password"
-                placeholder="App Password"
-                value={appPassword}
-                onChange={(e) => setAppPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-between">
-          {step > 1 && (
-            <Button 
-              variant="outline" 
-              onClick={() => setStep(step - 1)}
-              disabled={isLoading}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.open(step.link, '_blank')}
+              className="w-full"
             >
-              Previous
+              {step.buttonText}
+              <ExternalLink className="ml-2 h-4 w-4" />
             </Button>
-          )}
-          <Button 
-            onClick={handleNext} 
-            className="ml-auto"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              step === 3 ? 'Connect Gmail' : 'Next'
+
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Input
+                    name="email"
+                    type="email"
+                    placeholder="Gmail Address"
+                    required
+                    pattern="[a-z0-9._%+-]+@gmail\.com$"
+                    title="Please enter a valid Gmail address"
+                  />
+                  <Input
+                    name="appPassword"
+                    type="password"
+                    placeholder="App Password"
+                    required
+                    minLength={16}
+                    maxLength={16}
+                    pattern="[A-Za-z0-9]{16}"
+                    title="App password must be exactly 16 characters"
+                  />
+                </div>
+                <div className="flex justify-between">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentStep(prev => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <SubmitButton />
+                </div>
+              </div>
             )}
-          </Button>
-        </div>
+
+            {currentStep < 3 && (
+              <div className="flex justify-between">
+                {currentStep > 1 && (
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentStep(prev => prev - 1)}
+                  >
+                    Previous
+                  </Button>
+                )}
+                <Button 
+                  type="button"
+                  onClick={() => setCurrentStep(prev => prev + 1)}
+                  className="ml-auto"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </div>
+        </form>
       </CardContent>
     </Card>
   );

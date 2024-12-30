@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ContentAnalysis, ContentGap } from '@/lib/analysis/content-comparison';
 import { AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { generateQuestionKey, generateGapKey, generateRecommendationKey } from '@/lib/utils/key-generation';
 
 interface ContentGapsDisplayProps {
   analysis: ContentAnalysis;
@@ -13,34 +14,33 @@ interface ContentGapsDisplayProps {
 function GapCard({ gap }: { gap: ContentGap }) {
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">{gap.topic}</h3>
-            <Badge variant={gap.relevance > 0.7 ? "destructive" : "secondary"}>
-              {gap.frequency} occurrences
-            </Badge>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>{gap.topic}</span>
+          <Badge variant={gap.relevance > 0.7 ? "destructive" : "secondary"}>
+            {gap.frequency} occurrences
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Relevance</span>
+            <span>{Math.round(gap.relevance * 100)}%</span>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Relevance</span>
-              <span>{Math.round(gap.relevance * 100)}%</span>
-            </div>
-            <Progress value={gap.relevance * 100} />
-          </div>
+          <Progress value={gap.relevance * 100} />
+        </div>
 
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              {gap.suggestedContent}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {gap.relatedQuestions.map((question, i) => (
-                <Badge key={i} variant="outline">
-                  {question}
-                </Badge>
-              ))}
-            </div>
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {gap.suggestedContent}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {gap.relatedQuestions.map((question) => (
+              <Badge key={generateQuestionKey(question)} variant="outline">
+                {question}
+              </Badge>
+            ))}
           </div>
         </div>
       </CardContent>
@@ -72,8 +72,8 @@ export function ContentGapsDisplay({ analysis }: ContentGapsDisplayProps) {
       </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {analysis.gaps.map((gap, index) => (
-          <GapCard key={index} gap={gap} />
+        {analysis.gaps.map((gap) => (
+          <GapCard key={generateGapKey(gap.topic, gap.frequency)} gap={gap} />
         ))}
       </div>
 
@@ -83,8 +83,8 @@ export function ContentGapsDisplay({ analysis }: ContentGapsDisplayProps) {
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
-            {analysis.recommendations.map((recommendation, index) => (
-              <li key={index} className="flex items-start gap-2">
+            {analysis.recommendations.map((recommendation) => (
+              <li key={generateRecommendationKey(recommendation)} className="flex items-start gap-2">
                 <span className="text-primary">•</span>
                 <span>{recommendation}</span>
               </li>

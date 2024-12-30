@@ -19,9 +19,11 @@ export interface FAQConfig {
     fontFamily?: string;
   };
   sections: Array<{
+    id: string;
     title: string;
     description?: string;
     items: Array<{
+      id: string;
       question: string;
       answer: string;
       tags: string[];

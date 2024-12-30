@@ -1,59 +1,75 @@
 "use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Mail, Brain, LineChart, Zap } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gray-950">
-      {/* Animated background gradient */}
-      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 animate-gradient" />
-      
-      {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="space-y-8"
-        >
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl text-white">
-            Your Complete Email{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
-              Intelligence Platform
-            </span>
-          </h1>
-          
-          <p className="mx-auto max-w-2xl text-lg sm:text-xl text-gray-400">
-            Extract insights, build knowledge bases, analyze patterns, and manage subscriptions 
-            from your email conversations. All in one powerful platform.
-          </p>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <Button 
-              asChild 
-              size="lg" 
-              className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white px-8 py-6 text-lg rounded-2xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300"
-            >
-              <Link href="/signup" className="group">
-                Get Started
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Button>
-          </motion.div>
-        </motion.div>
+    <section className="container flex flex-col items-center gap-4 pb-8 pt-6 md:pt-10">
+      <div className="flex max-w-[980px] flex-col items-center gap-4 text-center">
+        <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]">
+          Transform Your Email into
+          <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            {" "}Actionable Knowledge
+          </span>
+        </h1>
+        <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
+          Automatically extract Q&As, generate insights, and manage your email communications intelligently.
+          Your email inbox, reimagined with AI.
+        </p>
       </div>
 
-      {/* Decorative blobs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob" />
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000" />
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000" />
+      <div className="flex gap-4">
+        <Button size="lg">
+          Get Started
+        </Button>
+        <Button variant="outline" size="lg">
+          Learn More
+        </Button>
+      </div>
+
+      <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <FeatureCard 
+          icon={Mail}
+          title="Smart Q&A Extraction"
+          description="Automatically identify and extract valuable Q&As from your email conversations"
+        />
+        <FeatureCard 
+          icon={Brain}
+          title="Knowledge Management"
+          description="Organize, categorize, and search your Q&A library with AI-powered tagging"
+        />
+        <FeatureCard 
+          icon={LineChart}
+          title="Analytics & Insights"
+          description="Track response times, analyze sentiment patterns, and identify trends"
+        />
+        <FeatureCard 
+          icon={Zap}
+          title="Email Automation"
+          description="Manage subscriptions, automate responses, and streamline communications"
+        />
+      </div>
     </section>
+  );
+}
+
+function FeatureCard({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <div className="mb-4 rounded-lg bg-primary/10 p-2">
+        <Icon className="h-6 w-6 text-primary" />
+      </div>
+      <h3 className="mb-2 font-semibold">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+    </div>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,6 +10,7 @@ import {
 import { Download, FileDown, Code, FileText } from 'lucide-react';
 import { ExportFormat } from '@/lib/exports/types';
 import { useToast } from '@/components/ui/use-toast';
+import { useMutation } from '@tanstack/react-query';
 
 interface ExportButtonProps {
   dateRange?: {
@@ -19,83 +19,74 @@ interface ExportButtonProps {
   };
 }
 
+async function downloadExport(url: string, filename: string) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Export failed');
+
+  const blob = await response.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = downloadUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(downloadUrl);
+  document.body.removeChild(a);
+}
+
 export function ExportButton({ dateRange }: ExportButtonProps) {
-  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
-  const handleExport = async (format: ExportFormat) => {
-    if (!dateRange?.from || !dateRange?.to) {
-      toast({
-        title: "Error",
-        description: "Please select a date range first",
-        variant: "destructive",
-      });
-      return;
-    }
+  const { mutate: exportData, isPending } = useMutation({
+    mutationFn: async (format: ExportFormat) => {
+      if (!dateRange?.from || !dateRange?.to) {
+        throw new Error('Please select a date range first');
+      }
 
-    setIsExporting(true);
-    try {
       const params = new URLSearchParams({
         format,
         startDate: dateRange.from.toISOString(),
         endDate: dateRange.to.toISOString(),
       });
 
-      const response = await fetch(`/api/exports?${params}`);
-      
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-
-      // Get filename from Content-Disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filename = contentDisposition?.split('filename=')[1]?.replace(/"/g, '') || 
-                      `qa-export.${format}`;
-
-      // Create download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
+      const url = `/api/exports?${params}`;
+      const filename = `qa-export.${format}`;
+      await downloadExport(url, filename);
+      return format;
+    },
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Export completed successfully",
       });
-    } catch (error) {
+    },
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to generate export",
+        description: error instanceof Error ? error.message : "Failed to generate export",
         variant: "destructive",
       });
-    } finally {
-      setIsExporting(false);
     }
-  };
+  });
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" disabled={isExporting}>
+        <Button variant="outline" disabled={isPending}>
           <Download className="mr-2 h-4 w-4" />
-          {isExporting ? 'Exporting...' : 'Export'}
+          {isPending ? 'Exporting...' : 'Export'}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleExport('csv')}>
+        <DropdownMenuItem onClick={() => exportData('csv')}>
           <FileDown className="mr-2 h-4 w-4" />
           Export as CSV
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleExport('html')}>
+        <DropdownMenuItem onClick={() => exportData('html')}>
           <FileText className="mr-2 h-4 w-4" />
           Export as HTML
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleExport('react')}>
+        <DropdownMenuItem onClick={() => exportData('react')}>
           <Code className="mr-2 h-4 w-4" />
           Export as React Component
         </DropdownMenuItem>

@@ -1,47 +1,106 @@
 "use client";
 
-import { Search, BookOpen, BarChart2, XCircle } from 'lucide-react';
-import { HoverEffect } from '@/components/ui/aceternity/card-hover-effect';
+import { 
+  Mail, 
+  Brain, 
+  LineChart, 
+  Zap, 
+  Search, 
+  Tags, 
+  Timer, 
+  TrendingUp,
+  MessageSquare,
+  Unlink,
+  FolderKanban,
+  Workflow
+} from "lucide-react";
 
 const features = [
   {
-    title: "Smart Extraction",
-    description: "AI-powered extraction of Q&As from your email conversations. Our advanced algorithms identify and extract meaningful question-answer pairs automatically.",
-    icon: <Search className="h-6 w-6 text-neutral-500 group-hover:text-white/80" />,
+    title: "Smart Q&A Extraction",
+    description: "Automatically identify and extract meaningful questions and answers from your email conversations.",
+    icon: Mail,
+    features: [
+      "AI-powered Q&A detection",
+      "Context-aware extraction",
+      "Confidence scoring",
+      "Bulk processing capabilities"
+    ]
   },
   {
-    title: "Knowledge Base",
-    description: "Transform your email Q&As into structured documentation. Generate beautiful FAQs and knowledge bases with just a few clicks.",
-    icon: <BookOpen className="h-6 w-6 text-neutral-500 group-hover:text-white/80" />,
+    title: "Knowledge Organization",
+    description: "Turn your email Q&As into a searchable knowledge base with intelligent organization.",
+    icon: Brain,
+    features: [
+      "AI-powered categorization",
+      "Automatic tagging",
+      "Smart search capabilities",
+      "Knowledge base export"
+    ]
   },
   {
-    title: "Deep Insights",
-    description: "Analyze patterns and sentiment in your email communications. Get actionable insights to improve your response quality and efficiency.",
-    icon: <BarChart2 className="h-6 w-6 text-neutral-500 group-hover:text-white/80" />,
+    title: "Analytics & Insights",
+    description: "Gain valuable insights into your email communications and Q&A patterns.",
+    icon: LineChart,
+    features: [
+      "Response time tracking",
+      "Sentiment analysis",
+      "Topic clustering",
+      "Trend identification"
+    ]
   },
   {
-    title: "Subscription Manager",
-    description: "Take control of your inbox. Easily identify and unsubscribe from unwanted email subscriptions with our intelligent management tools.",
-    icon: <XCircle className="h-6 w-6 text-neutral-500 group-hover:text-white/80" />,
-  },
+    title: "Email Automation",
+    description: "Streamline your email workflow with intelligent automation features.",
+    icon: Zap,
+    features: [
+      "Newsletter management",
+      "Bulk unsubscribe",
+      "Task automation",
+      "Smart categorization"
+    ]
+  }
 ];
 
 export function FeatureSection() {
   return (
-    <section className="relative py-20 overflow-hidden bg-gray-950">
-      <div className="max-w-5xl mx-auto px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neutral-100 to-neutral-400">
-            Powerful Features
-          </h2>
-          <p className="mt-4 text-neutral-400">
-            Everything you need to manage and leverage your email communications
-          </p>
-        </div>
+    <section className="container space-y-16 py-24 sm:py-32">
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="text-3xl font-bold sm:text-4xl">
+          Everything You Need to Master Your Email
+        </h2>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Powerful features to help you extract value, gain insights, and take control of your email communications.
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <HoverEffect items={features} />
-        </div>
+      <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2">
+        {features.map((feature) => (
+          <div
+            key={feature.title}
+            className="relative overflow-hidden rounded-lg border bg-background p-8"
+          >
+            <div className="flex items-center gap-4">
+              <div className="rounded-lg bg-primary/10 p-2">
+                <feature.icon className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold">{feature.title}</h3>
+            </div>
+            <p className="mt-4 text-muted-foreground">
+              {feature.description}
+            </p>
+            <ul className="mt-6 grid gap-3">
+              {feature.features.map((item) => (
+                <li key={item} className="flex items-center gap-3 text-sm">
+                  <div className="rounded-full border bg-background p-1">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  </div>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </section>
   );

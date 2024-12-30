@@ -7,52 +7,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Loader2 } from 'lucide-react';
 
-interface EmailConnectionStepProps {
-  onSuccess: () => void;
-}
-
-export function EmailConnectionStep({ onSuccess }: EmailConnectionStepProps) {
-  const [email, setEmail] = useState('');
-  const { mutate: connectGmail, isLoading } = useGmailAuth();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.endsWith('@gmail.com')) {
-      return;
-    }
-    connectGmail(undefined, {
-      onSuccess: () => onSuccess(),
-    });
-  };
-
+export function EmailConnectionStep() {
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Gmail Address</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="you@gmail.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          pattern=".*@gmail\.com$"
-        />
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold">Connect Your Gmail Account</h2>
+        <p className="text-sm text-muted-foreground">
+          Connect your Gmail account to start extracting Q&As from your emails
+        </p>
       </div>
-      
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Connecting...
-          </>
-        ) : (
-          <>
-            <Mail className="mr-2 h-4 w-4" />
-            Connect Gmail
-          </>
-        )}
-      </Button>
-    </form>
+
+      <div className="space-y-2">
+        <Input
+          name="email"
+          type="email"
+          placeholder="Gmail Address"
+          required
+          pattern="[a-z0-9._%+-]+@gmail\.com$"
+          title="Please enter a valid Gmail address"
+        />
+        <Input
+          name="appPassword"
+          type="password"
+          placeholder="App Password"
+          required
+          minLength={16}
+          maxLength={16}
+          pattern="[A-Za-z0-9]{16}"
+          title="App password must be exactly 16 characters"
+        />
+        <p className="text-sm text-muted-foreground">
+          You'll need to generate an App Password from your Google Account settings
+        </p>
+      </div>
+    </div>
   );
 }
