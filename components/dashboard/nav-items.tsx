@@ -37,6 +37,13 @@ export const mainNavItems: NavItem[] = [
         link: "/dashboard/qa",
         icon: <Database className="w-4 h-4" />,
         description: "View and manage Q&As"
+      },
+      {
+        id: 'create-qa',
+        name: "Create Q&A",
+        link: "/dashboard/qa/create",
+        icon: <FileText className="w-4 h-4" />,
+        description: "Create a new Q&A manually"
       }
     ]
   },
@@ -47,11 +54,11 @@ export const mainNavItems: NavItem[] = [
     icon: <BookOpen className="w-4 h-4" />,
     subItems: [
       {
-        id: 'faq',
-        name: "FAQ Builder",
-        link: "/dashboard/knowledge/faq",
+        id: 'qa-export',
+        name: "Q&A Export",
+        link: "/dashboard/knowledge/export",
         icon: <FileText className="w-4 h-4" />,
-        description: "Create FAQ pages"
+        description: "Export your Q&As in various formats"
       },
       {
         id: 'docs',

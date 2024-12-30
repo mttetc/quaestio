@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail, Loader2, ExternalLink } from "lucide-react";
-import { connectEmail } from "@/lib/actions/email";
-import type { EmailFormState } from "@/lib/actions/email";
+import { connectEmail } from "@/lib/features/email/actions/email";
+import type { EmailFormState } from "@/lib/features/email/actions/email";
 
 function ConnectButton() {
   const { pending } = useFormStatus();

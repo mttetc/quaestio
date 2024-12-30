@@ -2,7 +2,7 @@
 
 import { Coins } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { formatTokenAmount } from '@/lib/tokens/utils';
+import { formatTokenAmount } from '@/lib/shared/tokens/utils';
 
 export function TokenBalance() {
   const { data: balance, isLoading } = useQuery({

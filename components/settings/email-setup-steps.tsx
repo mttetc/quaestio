@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, Mail, Lock, Key, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { connectEmail } from "@/lib/actions/email";
-import type { EmailFormState } from "@/lib/actions/email";
+import { connectEmail } from "@/lib/features/email/actions/email";
+import type { EmailFormState } from "@/lib/features/email/actions/email";
 
 const STEPS = [
   {

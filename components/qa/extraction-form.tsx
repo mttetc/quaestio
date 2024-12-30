@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { Mail, Loader2 } from "lucide-react";
-import { extractQAs } from "@/lib/actions/qa";
+import { extractQAs } from "@/lib/features/qa/actions/qa";
 import { DateRange } from "react-day-picker";
 import { useEffect } from "react";
 
@@ -25,6 +25,8 @@ interface FormState {
         error?: string;
         success?: boolean;
         count?: number;
+        failureReasons?: string[];
+        failedEmails?: number;
     };
 }
 
@@ -82,7 +84,6 @@ export function ExtractionForm() {
         },
     });
 
-    // Show toast when status changes
     useEffect(() => {
         if (state.status?.error) {
             toast({
@@ -90,10 +91,29 @@ export function ExtractionForm() {
                 description: state.status.error,
                 variant: "destructive",
             });
+            
+            // If there are failure details, show them in a separate toast
+            if (state.status.failureReasons?.length) {
+                toast({
+                    title: `${state.status.failedEmails} Emails Failed`,
+                    description: (
+                        <div className="mt-2 max-h-[200px] overflow-y-auto">
+                            {state.status.failureReasons.map((reason, i) => (
+                                <p key={i} className="text-sm mt-1">{reason}</p>
+                            ))}
+                        </div>
+                    ),
+                    variant: "destructive",
+                });
+            }
         } else if (state.status?.success) {
+            const message = state.status.failedEmails
+                ? `Extracted ${state.status.count} Q&As. ${state.status.failedEmails} emails failed processing.`
+                : `Extracted ${state.status.count} Q&As from your emails`;
+            
             toast({
                 title: "Success",
-                description: `Extracted ${state.status.count} Q&As from your emails`,
+                description: message,
             });
         }
     }, [state.status, toast]);

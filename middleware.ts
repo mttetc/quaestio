@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
+import { db } from '@/lib/core/db';
+import { users } from '@/lib/core/db/schema';
 import { eq } from 'drizzle-orm';
 
 const protectedPaths = [

@@ -1,11 +1,6 @@
 "use client";
 
-import { useState } from 'react';
-import { useGmailAuth } from '@/lib/hooks/use-gmail-auth';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Mail, Loader2 } from 'lucide-react';
 
 export function EmailConnectionStep() {
   return (

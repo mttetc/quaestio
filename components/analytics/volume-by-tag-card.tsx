@@ -5,7 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
 import { Tag, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 
 interface VolumeData {
   name: string;

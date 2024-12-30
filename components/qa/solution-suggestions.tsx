@@ -5,8 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Lightbulb, Clock, ArrowRight, Shield } from 'lucide-react';
-import type { Solution } from '@/lib/ai/solution-generator';
-import { generateStepKey, generateMeasureKey } from '@/lib/utils/key-generation';
+import type { Solution } from '@/lib/infrastructure/ai/solution-generator';
+import { generateStepKey, generateMeasureKey } from '@/lib/shared/utils/key-generation';
 
 interface SolutionSuggestionsProps {
   qaId: string;

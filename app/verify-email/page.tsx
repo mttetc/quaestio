@@ -1,41 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail } from "lucide-react";
-import { useSupabase } from "@/lib/providers/supabase-provider";
-import { isEmailVerified, sendVerificationEmail } from "@/lib/auth/verification";
+import { checkEmailVerification, resendVerificationEmail } from "@/lib/core/auth/verification";
+import { useFormStatus } from "react-dom";
+
+function ResendButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button
+      type="submit"
+      disabled={pending}
+      variant="outline"
+      className="w-full"
+    >
+      {pending ? "Sending..." : "Resend verification email"}
+    </Button>
+  );
+}
 
 export default function VerifyEmailPage() {
   const router = useRouter();
-  const { session } = useSupabase();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    async function checkVerification() {
-      if (!session?.user) {
-        router.push("/login");
-        return;
-      }
-
-      const verified = await isEmailVerified(session.user);
-      if (verified) {
-        router.push("/dashboard");
+    async function verify() {
+      try {
+        const result = await checkEmailVerification();
+        if (result.shouldRedirect) {
+          router.push(result.shouldRedirect);
+        }
+      } catch (error) {
+        console.error('Verification check failed:', error);
       }
     }
 
-    checkVerification();
-  }, [session, router]);
+    verify();
+  }, [router]);
 
-  const handleResendEmail = async () => {
-    if (!session?.user?.email) return;
-    
-    setIsLoading(true);
+  async function handleResend() {
     try {
-      await sendVerificationEmail(session.user.email);
+      await resendVerificationEmail();
       toast({
         title: "Verification email sent",
         description: "Please check your inbox",
@@ -46,10 +54,8 @@ export default function VerifyEmailPage() {
         description: "Failed to send verification email",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -66,14 +72,9 @@ export default function VerifyEmailPage() {
           verification link to continue.
         </p>
 
-        <Button
-          onClick={handleResendEmail}
-          disabled={isLoading}
-          variant="outline"
-          className="w-full"
-        >
-          {isLoading ? "Sending..." : "Resend verification email"}
-        </Button>
+        <form action={handleResend}>
+          <ResendButton />
+        </form>
       </div>
     </div>
   );
