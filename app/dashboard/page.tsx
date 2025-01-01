@@ -1,17 +1,26 @@
-"use client";
-
-import { ExtractionForm } from "@/components/qa/extraction-form";
+import { Suspense } from "react";
+import { Providers } from "@/lib/providers";
+import { RecentActivity } from "@/components/dashboard/recent-activity";
+import { QuickActions } from "@/components/dashboard/quick-actions";
 
 export default function DashboardPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold tracking-tight">Your Q&A Library</h2>
-                <p className="text-muted-foreground">Extract and analyze Q&As from your email conversations</p>
+                <h2 className="text-2xl font-bold tracking-tight">Dashboard Overview</h2>
+                <p className="text-muted-foreground">Welcome to your Q&A management dashboard</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-                <ExtractionForm />
+                <QuickActions />
+                <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+                    <h3 className="font-semibold mb-2">Recent Activity</h3>
+                    <Providers>
+                        <Suspense fallback={<div>Loading recent activity...</div>}>
+                            <RecentActivity />
+                        </Suspense>
+                    </Providers>
+                </div>
             </div>
         </div>
     );

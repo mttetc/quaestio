@@ -1,5 +1,5 @@
 import { Inter } from 'next/font/google';
-import { ClientProviders } from '@/lib/providers/client-provider';
+import { Providers } from '@/lib/providers';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
@@ -18,10 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ClientProviders>
+        <Providers>
           {children}
           <Toaster />
-        </ClientProviders>
+        </Providers>
       </body>
     </html>
   );

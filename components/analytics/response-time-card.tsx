@@ -1,11 +1,16 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart } from "@/components/ui/line-chart";
-import { useResponseTimeMetrics } from "@/lib/services/analytics/hooks/use-metrics";
+import { useResponseMetrics } from "@/services/analytics/hooks/use-metrics";
+import type { DateRange as ApiDateRange } from "@/services/analytics/metrics";
+import type { DateRange } from "react-day-picker";
 
-export function ResponseTimeCard() {
-  const { data, isLoading, error } = useResponseTimeMetrics();
+interface ResponseTimeCardProps {
+  dateRange: DateRange;
+}
+
+export function ResponseTimeCard({ dateRange }: ResponseTimeCardProps) {
+  const { data, isLoading, error } = useResponseMetrics(dateRange);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -18,16 +23,17 @@ export function ResponseTimeCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Response Time Trends</CardTitle>
+        <CardTitle>Response Time</CardTitle>
       </CardHeader>
       <CardContent>
-        <LineChart
-          data={data?.trends || []}
-          xField="date"
-          yField="responseTime"
-          tooltipTitle="Avg. Response Time"
-          tooltipUnit="minutes"
-        />
+        <div className="space-y-2">
+          <div className="text-2xl font-bold">
+            {data?.averageTimeHours.toFixed(1)}h
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {data?.totalResponses} total responses
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

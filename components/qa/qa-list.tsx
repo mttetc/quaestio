@@ -1,16 +1,20 @@
 'use client';
 
-import type { QAFilter } from '@/lib/shared/types/qa';
+import type { QAFilter } from '@/lib/shared/schemas/qa';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
-import { useQAs } from '@/lib/shared/hooks/use-qa';
+import { useQAs } from '@/services/qa/hooks/use-qa';
 
 interface QAListProps {
   filter?: QAFilter;
   className?: string;
+  selectable?: boolean;
+  name?: string;
+  selectedIds?: string[];
 }
 
-export function QAList({ filter, className }: QAListProps) {
+export function QAList({ filter, className, selectable, name, selectedIds }: QAListProps) {
   const { data: qas, isLoading, error } = useQAs(filter);
 
   if (isLoading) {
@@ -42,26 +46,37 @@ export function QAList({ filter, className }: QAListProps) {
       {qas.map((qa) => (
         <Card key={qa.id} className="mb-4">
           <CardContent className="p-6">
-            <div className="mb-2">
-              <h3 className="text-lg font-semibold">{qa.question}</h3>
-              <p className="text-sm text-muted-foreground">{qa.answer}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {qa.tags?.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-              <span>Confidence: {qa.confidence}%</span>
-              <span>Importance: {qa.importance}</span>
-              {qa.responseTimeHours && (
-                <span>Response Time: {qa.responseTimeHours}h</span>
+            <div className="flex items-start gap-4">
+              {selectable && (
+                <Checkbox 
+                  name={name} 
+                  value={qa.id}
+                  checked={selectedIds?.includes(qa.id)}
+                />
               )}
+              <div className="flex-1">
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold">{qa.question}</h3>
+                  <p className="text-sm text-muted-foreground">{qa.answer}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {qa.tags?.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+                  <span>Confidence: {qa.confidence}%</span>
+                  <span>Importance: {qa.importance}</span>
+                  {qa.responseTimeHours && (
+                    <span>Response Time: {qa.responseTimeHours}h</span>
+                  )}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

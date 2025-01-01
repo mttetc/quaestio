@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { QA } from "@/lib/shared/schemas/qa";
+import type { DateRange } from "../metrics";
 
 export interface QuestionAnalytics {
   question: string;
@@ -14,22 +14,38 @@ export interface QuestionChartData {
   count: number;
 }
 
-export function useQuestionList() {
+export function useQuestionList(dateRange: DateRange) {
   return useQuery<QuestionAnalytics[]>({
-    queryKey: ["analytics", "questions"],
+    queryKey: ["analytics", "questions", dateRange],
     queryFn: async () => {
-      const response = await fetch("/api/analytics/questions");
+      const params = new URLSearchParams();
+      if (dateRange.from) params.set('from', dateRange.from.toISOString());
+      if (dateRange.to) params.set('to', dateRange.to.toISOString());
+      
+      const response = await fetch(`/api/analytics/questions?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch questions');
+      }
+
       return response.json();
-    },
+    }
   });
 }
 
-export function useQuestionChart(timeframe: string = "7d") {
+export function useQuestionChart(dateRange: DateRange) {
   return useQuery<{ data: QuestionChartData[] }>({
-    queryKey: ["analytics", "question-chart", timeframe],
+    queryKey: ["analytics", "question-chart", dateRange],
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/question-chart?timeframe=${timeframe}`);
+      const params = new URLSearchParams();
+      if (dateRange.from) params.set('from', dateRange.from.toISOString());
+      if (dateRange.to) params.set('to', dateRange.to.toISOString());
+      
+      const response = await fetch(`/api/analytics/question-chart?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch question chart data');
+      }
+
       return response.json();
-    },
+    }
   });
 } 

@@ -82,14 +82,17 @@ export async function getTopQuestions(
   });
 
   if (dateRange) {
-    query = db.query.questionAnalytics.findMany({
-      where: and(
-        eq(questionAnalytics.userId, userId),
-        between(questionAnalytics.lastSeen, dateRange.startDate, dateRange.endDate)
-      ),
-      orderBy: [desc(questionAnalytics.occurrences)],
-      limit,
-    });
+    const { from, to } = dateRange;
+    if (from && to) {
+      query = db.query.questionAnalytics.findMany({
+        where: and(
+          eq(questionAnalytics.userId, userId),
+          between(questionAnalytics.lastSeen, from, to)
+        ),
+        orderBy: [desc(questionAnalytics.occurrences)],
+        limit,
+      });
+    }
   }
 
   const results = await query;

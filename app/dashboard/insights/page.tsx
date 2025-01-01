@@ -7,6 +7,9 @@ import { ResponseTimeCard } from "@/components/analytics/response-time-card";
 import { VolumeByTagCard } from "@/components/analytics/volume-by-tag-card";
 import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
+import { PageHeader } from "@/components/ui/page-header";
+import { PAGE_HEADERS } from "@/lib/shared/constants/text";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export default function InsightsPage() {
     const defaultDateRange = {
@@ -21,23 +24,31 @@ export default function InsightsPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Insights Overview</h2>
-                <p className="text-muted-foreground">Track and analyze patterns in your Q&A interactions</p>
-            </div>
+            <PageHeader 
+                title={PAGE_HEADERS.INSIGHTS.title}
+                description={PAGE_HEADERS.INSIGHTS.description}
+            />
 
             <div className="flex justify-end">
                 <DatePickerWithRange date={dateRange} onDateChange={handleDateRangeChange} />
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-                <ResponseTimeCard dateRange={dateRange} />
-                <VolumeByTagCard dateRange={dateRange} />
+                <ErrorBoundary>
+                    <ResponseTimeCard dateRange={dateRange} />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                    <VolumeByTagCard dateRange={dateRange} />
+                </ErrorBoundary>
             </div>
 
             <div className="grid gap-6">
-                <QuestionChart dateRange={dateRange} />
-                <SentimentHeatmap dateRange={dateRange} />
+                <ErrorBoundary>
+                    <QuestionChart dateRange={dateRange} />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                    <SentimentHeatmap dateRange={dateRange} />
+                </ErrorBoundary>
             </div>
         </div>
     );

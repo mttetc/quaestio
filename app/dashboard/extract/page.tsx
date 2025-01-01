@@ -1,15 +1,19 @@
 import { ExtractionForm } from "@/components/qa/extraction-form";
+import { PageHeader } from "@/components/ui/page-header";
+import { PAGE_HEADERS } from "@/lib/shared/constants/text";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export default function ExtractPage() {
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Extract Q&As</h2>
-                <p className="text-muted-foreground">Extract Q&As from your email conversations</p>
-            </div>
-
+            <PageHeader 
+                title={PAGE_HEADERS.EXTRACT.title}
+                description={PAGE_HEADERS.EXTRACT.description}
+            />
             <div className="grid gap-6 md:grid-cols-2">
-                <ExtractionForm />
+                <ErrorBoundary>
+                    <ExtractionForm />
+                </ErrorBoundary>
             </div>
         </div>
     );

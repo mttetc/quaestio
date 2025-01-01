@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QA, QAFilter, CreateQAInput, UpdateQAInput } from '@/lib/shared/schemas/qa';
-import { getQAs, createQA, updateQA, deleteQA } from '@/services/qa/actions';
+import { getQAs, createQA, updateQA, deleteQA } from '@/lib/features/qa/actions';
 
 export function useQAs(filter?: QAFilter) {
   return useQuery({

@@ -4,8 +4,8 @@ import { and, between, eq, avg, count } from 'drizzle-orm';
 import { analyzeSentiment } from '@/lib/infrastructure/ai/sentiment-analyzer';
 
 export interface DateRange {
-  startDate: Date;
-  endDate: Date;
+  from?: Date;
+  to?: Date;
 }
 
 export interface AnalyticsMetric {
@@ -30,96 +30,44 @@ export interface QualityMetrics extends AnalyticsMetric {
   helpfulnessScore: number;
 }
 
-export async function getResponseMetrics(
-  userId: string,
-  dateRange: DateRange
-): Promise<ResponseMetrics> {
-  const result = await db
-    .select({
-      averageTime: avg(qaEntries.responseTimeHours),
-      total: count(),
-    })
-    .from(qaEntries)
-    .where(
-      and(
-        eq(qaEntries.userId, userId),
-        between(
-          qaEntries.createdAt,
-          dateRange.startDate,
-          dateRange.endDate
-        )
-      )
-    );
+export async function getResponseMetrics(dateRange: DateRange): Promise<ResponseMetrics> {
+    const params = new URLSearchParams({
+        from: dateRange.from?.toISOString() ?? '',
+        to: dateRange.to?.toISOString() ?? ''
+    });
 
-  return {
-    value: Number(result[0]?.averageTime) || 0,
-    averageTimeHours: Number(result[0]?.averageTime) || 0,
-    totalResponses: Number(result[0]?.total) || 0,
-  };
+    const response = await fetch(`/api/analytics/metrics/response?${params}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch response metrics');
+    }
+
+    return response.json();
 }
 
-export async function getVolumeMetrics(
-  userId: string,
-  dateRange: DateRange
-): Promise<VolumeMetrics> {
-  const results = await db
-    .select({
-      category: qaEntries.category,
-      count: count(),
-    })
-    .from(qaEntries)
-    .where(
-      and(
-        eq(qaEntries.userId, userId),
-        between(
-          qaEntries.createdAt,
-          dateRange.startDate,
-          dateRange.endDate
-        )
-      )
-    )
-    .groupBy(qaEntries.category);
+export async function getVolumeMetrics(dateRange: DateRange): Promise<VolumeMetrics> {
+    const params = new URLSearchParams({
+        from: dateRange.from?.toISOString() ?? '',
+        to: dateRange.to?.toISOString() ?? ''
+    });
 
-  const byCategory = results.reduce<Record<string, number>>((acc, { category, count }) => ({
-    ...acc,
-    [category || 'Uncategorized']: Number(count),
-  }), {});
+    const response = await fetch(`/api/analytics/metrics/volume?${params}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch volume metrics');
+    }
 
-  const totalQuestions = Object.values(byCategory).reduce((a: number, b: number) => a + b, 0);
-
-  return {
-    value: totalQuestions,
-    totalQuestions,
-    byCategory,
-  };
+    return response.json();
 }
 
-export async function getQualityMetrics(
-  userId: string,
-  dateRange: DateRange
-): Promise<QualityMetrics> {
-  const entries = await db.query.qaEntries.findMany({
-    where: and(
-      eq(qaEntries.userId, userId),
-      between(
-        qaEntries.createdAt,
-        dateRange.startDate,
-        dateRange.endDate
-      )
-    ),
-  });
+export async function getQualityMetrics(dateRange: DateRange): Promise<QualityMetrics> {
+    const params = new URLSearchParams({
+        from: dateRange.from?.toISOString() ?? '',
+        to: dateRange.to?.toISOString() ?? ''
+    });
 
-  const sentiments = await Promise.all(
-    entries.map(entry => analyzeSentiment(entry.question, entry.answer))
-  );
+    const response = await fetch(`/api/analytics/metrics/quality?${params}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch quality metrics');
+    }
 
-  const averageConfidence = entries.reduce((acc, entry) => acc + entry.confidence, 0) / entries.length;
-  const sentimentScore = sentiments.reduce((acc, s) => acc + s.score, 0) / sentiments.length;
-
-  return {
-    value: averageConfidence,
-    averageConfidence,
-    sentimentScore,
-    helpfulnessScore: sentimentScore * averageConfidence,
-  };
+    return response.json();
 } 

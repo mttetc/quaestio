@@ -2,15 +2,21 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuestionList } from "@/services/analytics/hooks/use-questions";
+import type { DateRange as ApiDateRange } from "@/services/analytics/metrics";
+import type { DateRange } from "react-day-picker";
 
-export function QuestionList() {
-  const { data: questions, isLoading } = useQuestionList();
+interface QuestionListProps {
+  dateRange: DateRange;
+}
+
+export function QuestionList({ dateRange }: QuestionListProps) {
+  const { data, isLoading, error } = useQuestionList(dateRange);
 
   if (isLoading) {
     return <div>Loading questions...</div>;
   }
 
-  if (!questions?.length) {
+  if (!data?.length) {
     return null;
   }
 
@@ -21,7 +27,7 @@ export function QuestionList() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {questions.map((question) => (
+          {data.map((question) => (
             <div key={question.question} className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{question.question}</span>

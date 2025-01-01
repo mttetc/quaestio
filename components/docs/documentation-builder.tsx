@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { generateDocs } from "@/lib/actions/docs";
+import { generateDocs } from "@/lib/features/docs/actions/docs";
 import { Book, Loader2 } from "lucide-react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";

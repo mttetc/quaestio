@@ -25,7 +25,9 @@ export const users = pgTable('users', {
   lastUsageReset: timestamp('last_usage_reset').notNull().defaultNow(),
   hasCompletedOnboarding: boolean('has_completed_onboarding').notNull().default(false),
   stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
   subscriptionTier: text('subscription_tier', { enum: ['FREE', 'PRO', 'ENTERPRISE'] }).notNull().default('FREE'),
+  subscriptionStatus: text('subscription_status', { enum: ['ACTIVE', 'INACTIVE', 'CANCELED'] }).default('INACTIVE'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
@@ -60,7 +62,8 @@ export const emailAccounts = pgTable('email_accounts', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
   email: text('email').notNull(),
-  accessToken: text('access_token').notNull(),
+  encryptedAccessToken: text('encrypted_access_token').notNull(),
+  encryptionIV: text('encryption_iv').notNull(),
   provider: text('provider').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -80,10 +83,34 @@ export const questionAnalytics = pgTable('question_analytics', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const integrations = pgTable('integrations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  type: text('type', { enum: ['notion', 'trello', 'clickup'] }).notNull(),
+  name: text('name').notNull(),
+  config: jsonb('config').notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const subscriptions = pgTable('subscriptions', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  stripeCustomerId: text('stripe_customer_id'),
+  stripePriceId: text('stripe_price_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
+  status: text('status'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   qaEntries: many(qaEntries),
   emailAccounts: many(emailAccounts),
   tokenTransactions: many(tokenTransactions),
+  questionAnalytics: many(questionAnalytics),
+  integrations: many(integrations),
 }));
 
 export const qaEntriesRelations = relations(qaEntries, ({ one }) => ({
@@ -103,6 +130,20 @@ export const emailAccountsRelations = relations(emailAccounts, ({ one }) => ({
 export const tokenTransactionsRelations = relations(tokenTransactions, ({ one }) => ({
   user: one(users, {
     fields: [tokenTransactions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const questionAnalyticsRelations = relations(questionAnalytics, ({ one }) => ({
+  user: one(users, {
+    fields: [questionAnalytics.userId],
+    references: [users.id],
+  }),
+}));
+
+export const integrationsRelations = relations(integrations, ({ one }) => ({
+  user: one(users, {
+    fields: [integrations.userId],
     references: [users.id],
   }),
 }));

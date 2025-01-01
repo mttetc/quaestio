@@ -1,14 +1,18 @@
 import { QAList } from "@/components/qa/qa-list";
+import { PageHeader } from "@/components/ui/page-header";
+import { PAGE_HEADERS } from "@/lib/shared/constants/text";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export default function QAPage() {
     return (
         <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Q&A Library</h2>
-                <p className="text-muted-foreground">View and manage your Q&A collection</p>
-            </div>
-
-            <QAList />
+            <PageHeader 
+                title={PAGE_HEADERS.QA_LIBRARY.title}
+                description={PAGE_HEADERS.QA_LIBRARY.description}
+            />
+            <ErrorBoundary>
+                <QAList />
+            </ErrorBoundary>
         </div>
     );
 }

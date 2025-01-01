@@ -1,9 +1,10 @@
 "use client";
 
-import { DateRange } from "react-day-picker";
+import type { DateRange } from "react-day-picker";
+import type { DateRange as ApiDateRange } from "@/services/analytics/metrics";
 import { generateHeatmapCellKey } from '@/lib/shared/utils/key-generation';
 import { cn } from "@/lib/shared/utils";
-import { useSentimentHeatmap, type SentimentData } from "@/services/analytics/hooks/use-sentiment-heatmap";
+import { useSentimentHeatmap, type SentimentData } from "@/services/analytics/hooks/use-sentiment";
 
 interface SentimentHeatmapProps {
   dateRange: DateRange;

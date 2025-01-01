@@ -1,14 +1,28 @@
 "use client";
 
+import { Line } from "react-chartjs-2";
 import {
-  LineChart as RechartsLineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
   Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+  Legend,
+  ChartOptions,
+  TooltipItem
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface LineChartProps {
   data: any[];
@@ -18,45 +32,37 @@ interface LineChartProps {
   tooltipUnit?: string;
 }
 
-export function LineChart({
-  data,
-  xField,
-  yField,
-  tooltipTitle = "Value",
-  tooltipUnit = "",
-}: LineChartProps) {
+export function LineChart({ data, xField, yField, tooltipTitle, tooltipUnit }: LineChartProps) {
+  const chartData = {
+    labels: data.map(item => item[xField]),
+    datasets: [
+      {
+        label: tooltipTitle || yField,
+        data: data.map(item => item[yField]),
+        borderColor: "rgb(75, 192, 192)",
+        tension: 0.1
+      }
+    ]
+  };
+
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: (context: TooltipItem<"line">) => {
+            const value = context.parsed.y;
+            return `${value}${tooltipUnit ? ` ${tooltipUnit}` : ""}`;
+          }
+        }
+      }
+    }
+  };
+
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <RechartsLineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey={xField}
-            stroke="hsl(var(--muted-foreground))"
-            fontSize={12}
-          />
-          <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "hsl(var(--background))",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: "6px",
-            }}
-            formatter={(value: number) => [
-              `${value.toLocaleString()}${tooltipUnit}`,
-              tooltipTitle,
-            ]}
-          />
-          <Line
-            type="monotone"
-            dataKey={yField}
-            stroke="hsl(var(--primary))"
-            strokeWidth={2}
-            dot={false}
-            name={tooltipTitle}
-          />
-        </RechartsLineChart>
-      </ResponsiveContainer>
+    <div style={{ height: "300px" }}>
+      <Line data={chartData} options={options} />
     </div>
   );
 } 

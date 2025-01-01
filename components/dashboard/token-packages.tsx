@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
-import { generatePackageFeatureKey } from '@/lib/utils/key-generation';
+import { generatePackageFeatureKey } from '@/lib/shared/utils/key-generation';
 
 interface TokenPackage {
   id: string;

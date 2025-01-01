@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from './services/supabase/server';
 
 // Protected routes that require authentication
@@ -9,7 +8,6 @@ const protectedPaths = [
   '/api/email',
   '/api/user',
   '/api/exports',
-  '/api/faq',
   '/api/integrations',
   '/api/analysis',
   '/dashboard',

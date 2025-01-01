@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useRef, useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { submitQA } from '@/lib/features/qa/actions';
-import { QA } from '@/lib/shared/types/qa';
+import { QA } from '@/lib/shared/schemas/qa';
 
 interface QAFormProps {
   qa?: QA;
@@ -29,8 +29,9 @@ function SubmitButton() {
 }
 
 const initialState = {
-  error: null,
-  fieldErrors: {}
+  error: undefined,
+  message: undefined,
+  fieldErrors: {} as Record<string, string[]>
 };
 
 export function QAForm({ qa, onSuccess, className }: QAFormProps) {

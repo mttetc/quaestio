@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ContentAnalysis, ContentGap } from '@/lib/features/analytics/core/content-comparison';
+import { ContentAnalysis, ContentGap } from '@/lib/infrastructure/ai/content-comparison';
 import { AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { generateQuestionKey, generateGapKey, generateRecommendationKey } from '@/lib/shared/utils/key-generation';
 

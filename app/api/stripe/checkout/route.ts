@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { stripe } from "@/lib/stripe";
-import { TOKEN_PACKAGES } from "@/lib/config/pricing";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { stripe } from "@/services/stripe/client";
+import { SUBSCRIPTION_TIERS } from "@/lib/shared/config/pricing";
+import { db } from "@/services/db";
+import { users } from "@/lib/core/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
     try {
         const { packageId } = await request.json();
-        const package_ = TOKEN_PACKAGES[packageId as keyof typeof TOKEN_PACKAGES];
+        const package_ = SUBSCRIPTION_TIERS[packageId as keyof typeof SUBSCRIPTION_TIERS];
 
         if (!package_) {
             return NextResponse.json({ error: "Invalid package" }, { status: 400 });

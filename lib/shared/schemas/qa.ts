@@ -44,4 +44,16 @@ export interface QAFilter {
     from: Date;
     to: Date;
   };
+}
+
+export interface QAMetrics {
+    responseTime: {
+        average: number;
+        minimum: number;
+        maximum: number;
+    };
+    volumeByTag: Array<{
+        tag: string;
+        count: number;
+    }>;
 } 

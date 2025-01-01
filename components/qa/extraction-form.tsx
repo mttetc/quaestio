@@ -1,54 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
 import { useFormState } from "react-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail } from "lucide-react";
-import { ExtractButton } from "./extract-button";
-import { formAction, initialState } from "./extract-action";
-import { useEmailAccounts, type EmailAccount } from "@/services/email/hooks/use-email-accounts";
+import { ExtractButton } from "@/components/qa/extract-button";
+import { extractAction } from "@/lib/features/qa/actions/extract";
+import { ExtractFormState } from "@/lib/features/qa/actions/types";
+import { useEmailAccounts } from "@/services/email/hooks";
+import type { EmailAccount } from "@/services/email/api";
+
+const extractInitialState: ExtractFormState = { status: undefined };
 
 export function ExtractionForm() {
     const { toast } = useToast();
-    const [state, dispatch] = useFormState(formAction, initialState);
+    const [state, dispatch] = useFormState(extractAction, extractInitialState);
     const { data: emailAccounts, isLoading } = useEmailAccounts();
 
-    useEffect(() => {
-        if (state.status?.error) {
-            toast({
-                title: "Error",
-                description: state.status.error,
-                variant: "destructive",
-            });
-            
-            // If there are failure details, show them in a separate toast
-            if (state.status.failureReasons?.length) {
-                toast({
-                    title: `${state.status.failedEmails} Emails Failed`,
-                    description: (
-                        <div className="mt-2 max-h-[200px] overflow-y-auto">
-                            {state.status.failureReasons.map((reason: string, i: number) => (
-                                <p key={i} className="text-sm mt-1">{reason}</p>
-                            ))}
-                        </div>
-                    ),
-                    variant: "destructive",
-                });
-            }
-        } else if (state.status?.success) {
-            const message = state.status.failedEmails
-                ? `Extracted ${state.status.count} Q&As. ${state.status.failedEmails} emails failed processing.`
-                : `Extracted ${state.status.count} Q&As from your emails`;
-            
-            toast({
-                title: "Success",
-                description: message,
-            });
-        }
-    }, [state.status, toast]);
+    // Handle notifications based on state changes
+    if (state.status?.error) {
+        toast({
+            title: "Error",
+            description: state.status.error,
+            variant: "destructive",
+        });
+    } else if (state.status?.count) {
+        const message = state.status.failedEmails
+            ? `Extracted ${state.status.count} Q&As. ${state.status.failedEmails} emails failed processing.`
+            : `Extracted ${state.status.count} Q&As from your emails`;
+        
+        toast({
+            title: "Success",
+            description: message,
+        });
+    }
 
     return (
         <Card>

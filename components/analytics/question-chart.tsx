@@ -3,13 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart } from "@/components/ui/line-chart";
 import { useQuestionChart } from "@/services/analytics/hooks/use-questions";
+import { DateRange } from "react-day-picker";
 
 interface QuestionChartProps {
-  timeframe?: string;
+  dateRange: DateRange;
 }
 
-export function QuestionChart({ timeframe = "7d" }: QuestionChartProps) {
-  const { data, isLoading, error } = useQuestionChart(timeframe);
+export function QuestionChart({ dateRange }: QuestionChartProps) {
+  const { data, isLoading, error } = useQuestionChart(dateRange);
 
   if (isLoading) {
     return <div>Loading chart data...</div>;

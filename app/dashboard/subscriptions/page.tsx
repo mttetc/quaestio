@@ -1,30 +1,42 @@
 "use client";
 
 import { SubscriptionList } from "@/components/email/subscription-list";
-import { useSubscriptions, useUnsubscribe } from "@/services/email/hooks/use-subscriptions";
+import { useSubscriptions, useUnsubscribe } from "@/services/email/hooks/use-email";
+import type { EmailSubscription } from "@/services/email/subscription/types";
+
+function adaptSubscription(sub: any): EmailSubscription {
+    return {
+        ...sub,
+        lastReceived: new Date().toISOString(),
+        emailCount: 0,
+        unsubscribeMethod: 'link'
+    };
+}
 
 export default function SubscriptionsPage() {
-  const { data: subscriptions, isLoading } = useSubscriptions();
-  const { mutate: unsubscribe, isPending: isUnsubscribing } = useUnsubscribe();
+    const { data: rawSubscriptions, isLoading } = useSubscriptions();
+    const { mutate: unsubscribe, isPending: isUnsubscribing } = useUnsubscribe();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+    if (isLoading || !rawSubscriptions) {
+        return <div>Loading...</div>;
+    }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Email Subscriptions</h2>
-        <p className="text-muted-foreground">
-          Manage your email subscriptions and newsletters
-        </p>
-      </div>
+    const subscriptions = rawSubscriptions.map(adaptSubscription);
 
-      <SubscriptionList 
-        subscriptions={subscriptions}
-        onUnsubscribe={unsubscribe}
-        isUnsubscribing={isUnsubscribing}
-      />
-    </div>
-  );
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-2xl font-bold tracking-tight">Email Subscriptions</h2>
+                <p className="text-muted-foreground">
+                    Manage your email subscriptions and newsletters
+                </p>
+            </div>
+
+            <SubscriptionList 
+                subscriptions={subscriptions}
+                onUnsubscribe={unsubscribe}
+                isUnsubscribing={isUnsubscribing}
+            />
+        </div>
+    );
 }

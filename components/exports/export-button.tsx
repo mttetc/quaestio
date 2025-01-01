@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useExport } from "@/services/exports/hooks/use-export";
-import type { ExportOptions } from "@/services/exports/hooks/use-export";
+import { useExport } from "@/services/exports/hooks";
+import type { ExportOptions } from "@/services/exports/api";
 
 interface ExportButtonProps {
   options: ExportOptions;

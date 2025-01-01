@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
 import { LogOut, Settings, HelpCircle } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/services/supabase/client";
 
 interface HeaderProps {
   children?: React.ReactNode;

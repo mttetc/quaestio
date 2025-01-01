@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { signInWithEmail } from "@/lib/core/auth/actions";
+import { signIn } from "@/lib/features/auth/actions/auth";
 import { useRouter } from "next/navigation";
 
 const DEV_ADMIN_EMAIL = "admin@example.com";
@@ -19,14 +19,12 @@ export function DevLogin() {
 
   const handleDevLogin = async () => {
     try {
-      const { error, data } = await signInWithEmail(DEV_ADMIN_EMAIL, DEV_ADMIN_PASSWORD);
+      const formData = new FormData();
+      formData.append('email', DEV_ADMIN_EMAIL);
+      formData.append('password', DEV_ADMIN_PASSWORD);
       
-      if (error) throw error;
-      
-      if (data.session) {
-        router.push("/dashboard");
-        router.refresh();
-      }
+      await signIn(null, formData);
+      router.refresh();
     } catch (error) {
       toast({
         title: "Error",
