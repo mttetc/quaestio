@@ -1,11 +1,16 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Clock, BarChart2, ThumbsUp, Loader2 } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/shared/utils";
+import { 
+  useResponseMetrics, 
+  useVolumeMetrics, 
+  useQualityMetrics,
+  getTopCategories,
+} from "@/services/analytics/hooks/use-metrics";
 
 interface MetricCardProps {
   title: string;
@@ -14,32 +19,9 @@ interface MetricCardProps {
   children: React.ReactNode;
 }
 
-interface ResponseMetrics {
-  averageTimeHours: number;
-  totalResponses: number;
-}
-
-interface VolumeMetrics {
-  totalQuestions: number;
-  byCategory: Record<string, number>;
-}
-
-interface QualityMetrics {
-  helpfulnessScore: number;
-  averageConfidence: number;
-  sentimentScore: number;
-}
-
 interface MetricsOverviewProps {
   dateRange: DateRange;
   className?: string;
-}
-
-function getTopCategories(byCategory: Record<string, number>): Array<[string, number]> {
-  return Object.entries(byCategory)
-    .reduce<Array<[string, number]>>((acc, entry) => [...acc, entry], [])
-    .sort(([, a], [, b]) => b - a)
-    .filter((_, index) => index < 3);
 }
 
 function MetricCard({ title, icon: Icon, isLoading, children }: MetricCardProps) {
@@ -63,40 +45,10 @@ function MetricCard({ title, icon: Icon, isLoading, children }: MetricCardProps)
   );
 }
 
-function useMetricsQuery<T>(endpoint: string, dateRange: DateRange) {
-  return useQuery<T>({
-    queryKey: [endpoint, dateRange],
-    queryFn: async () => {
-      if (!dateRange.from || !dateRange.to) {
-        throw new Error("Date range is required");
-      }
-
-      const params = new URLSearchParams({
-        startDate: dateRange.from.toISOString(),
-        endDate: dateRange.to.toISOString(),
-      });
-
-      const response = await fetch(`/api/analytics/metrics/${endpoint}?${params}`);
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || `Failed to fetch ${endpoint} metrics`);
-      }
-
-      return response.json();
-    },
-    enabled: !!(dateRange.from && dateRange.to),
-  });
-}
-
 export function MetricsOverview({ dateRange, className }: MetricsOverviewProps) {
-  const { data: responseMetrics, isLoading: isLoadingResponse } = 
-    useMetricsQuery<ResponseMetrics>("response", dateRange);
-
-  const { data: volumeMetrics, isLoading: isLoadingVolume } = 
-    useMetricsQuery<VolumeMetrics>("volume", dateRange);
-
-  const { data: qualityMetrics, isLoading: isLoadingQuality } = 
-    useMetricsQuery<QualityMetrics>("quality", dateRange);
+  const { data: responseMetrics, isLoading: isLoadingResponse } = useResponseMetrics(dateRange);
+  const { data: volumeMetrics, isLoading: isLoadingVolume } = useVolumeMetrics(dateRange);
+  const { data: qualityMetrics, isLoading: isLoadingQuality } = useQualityMetrics(dateRange);
 
   const topCategories = volumeMetrics?.byCategory 
     ? getTopCategories(volumeMetrics.byCategory)

@@ -1,4 +1,5 @@
-import { openai } from './config';
+import { chatModel } from './config';
+import { ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate } from '@langchain/core/prompts';
 
 export type Sentiment = 'positive' | 'negative' | 'neutral';
 
@@ -9,28 +10,25 @@ export interface SentimentAnalysis {
   confidence: number;
 }
 
+const prompt = ChatPromptTemplate.fromPromptMessages([
+  SystemMessagePromptTemplate.fromTemplate(
+    'You are a sentiment analysis expert. Respond only with valid JSON.'
+  ),
+  HumanMessagePromptTemplate.fromTemplate(
+    'Analyze the sentiment of this Q&A exchange:\nQuestion: {question}\nAnswer: {answer}'
+  )
+]);
+
 export async function analyzeSentiment(
   question: string,
   answer: string
 ): Promise<SentimentAnalysis> {
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a sentiment analysis expert. Respond only with valid JSON.'
-      },
-      {
-        role: 'user',
-        content: `Analyze the sentiment of this Q&A exchange:
-Question: ${question}
-Answer: ${answer}`
-      }
-    ],
-    temperature: 0.3,
-    response_format: { type: 'json_object' }
+  const messages = await prompt.formatMessages({
+    question,
+    answer
   });
 
-  const content = response.choices[0].message.content;
-  return JSON.parse(content || '{}');
+  const response = await chatModel.invoke(messages);
+  const result = JSON.parse(response.text) as SentimentAnalysis;
+  return result;
 }

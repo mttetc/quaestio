@@ -8,7 +8,6 @@ import {
   integer,
   jsonb
 } from 'drizzle-orm/pg-core';
-import { UserRole } from '../config/roles';
 
 export type QAMetadata = {
   date: Date;
@@ -29,6 +28,16 @@ export const users = pgTable('users', {
   subscriptionTier: text('subscription_tier', { enum: ['FREE', 'PRO', 'ENTERPRISE'] }).notNull().default('FREE'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const tokenTransactions = pgTable('token_transactions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  amount: integer('amount').notNull(),
+  type: text('type').notNull(),
+  description: text('description').notNull(),
+  stripePaymentId: text('stripe_payment_id'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 export const qaEntries = pgTable('qa_entries', {
@@ -57,9 +66,24 @@ export const emailAccounts = pgTable('email_accounts', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+export const questionAnalytics = pgTable('question_analytics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  questionHash: text('question_hash').notNull(),
+  question: text('question').notNull(),
+  category: text('category'),
+  occurrences: integer('occurrences').notNull().default(1),
+  firstSeen: timestamp('first_seen').notNull(),
+  lastSeen: timestamp('last_seen').notNull(),
+  averageConfidence: integer('average_confidence').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   qaEntries: many(qaEntries),
   emailAccounts: many(emailAccounts),
+  tokenTransactions: many(tokenTransactions),
 }));
 
 export const qaEntriesRelations = relations(qaEntries, ({ one }) => ({
@@ -72,6 +96,13 @@ export const qaEntriesRelations = relations(qaEntries, ({ one }) => ({
 export const emailAccountsRelations = relations(emailAccounts, ({ one }) => ({
   user: one(users, {
     fields: [emailAccounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const tokenTransactionsRelations = relations(tokenTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [tokenTransactions.userId],
     references: [users.id],
   }),
 }));

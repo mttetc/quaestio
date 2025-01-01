@@ -1,5 +1,5 @@
 import { openai } from './config';
-import { QAExtractionResult } from '../email/types';
+import { QA } from '@/lib/shared/schemas/qa';
 
 export interface QuestionCluster {
   mainQuestion: string;
@@ -25,7 +25,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 export async function clusterSimilarQuestions(
-  questions: QAExtractionResult[]
+  questions: QA[]
 ): Promise<QuestionCluster[]> {
   // Get embeddings for all questions
   const embeddings = await Promise.all(

@@ -1,15 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { DateRange } from "react-day-picker";
 import { generateHeatmapCellKey } from '@/lib/shared/utils/key-generation';
 import { cn } from "@/lib/shared/utils";
-
-interface SentimentData {
-  date: string;
-  sentiment: "positive" | "negative" | "neutral";
-  count: number;
-}
+import { useSentimentHeatmap, type SentimentData } from "@/services/analytics/hooks/use-sentiment-heatmap";
 
 interface SentimentHeatmapProps {
   dateRange: DateRange;
@@ -29,19 +23,7 @@ function getHeatmapColor(sentiment: SentimentData | undefined): string {
 }
 
 export function SentimentHeatmap({ dateRange }: SentimentHeatmapProps) {
-  const { data: sentiments, isLoading } = useQuery({
-    queryKey: ['sentiment-heatmap', dateRange],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/analytics/sentiment?${new URLSearchParams({
-          startDate: dateRange.from?.toISOString() ?? '',
-          endDate: dateRange.to?.toISOString() ?? ''
-        })}`
-      );
-      if (!response.ok) throw new Error('Failed to fetch sentiment data');
-      return response.json();
-    },
-  });
+  const { data: sentiments, isLoading } = useSentimentHeatmap(dateRange);
 
   if (isLoading) {
     return <div>Loading sentiment data...</div>;

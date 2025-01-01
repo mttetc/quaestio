@@ -1,74 +1,52 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { DateRange } from "react-day-picker";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { TrendBadge } from "./trend-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuestionList } from "@/services/analytics/hooks/use-questions";
 
-interface QuestionListProps {
-  dateRange: DateRange;
-}
-
-export function QuestionList({ dateRange }: QuestionListProps) {
-  const { data: questions, isLoading } = useQuery({
-    queryKey: ["topQuestions", dateRange],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        startDate: dateRange.from?.toISOString() || "",
-        endDate: dateRange.to?.toISOString() || "",
-        limit: "10",
-      });
-      const response = await fetch(`/api/analytics/questions?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch questions");
-      return response.json();
-    },
-    enabled: !!(dateRange.from && dateRange.to),
-  });
+export function QuestionList() {
+  const { data: questions, isLoading } = useQuestionList();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading questions...</div>;
+  }
+
+  if (!questions?.length) {
+    return null;
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Questions</CardTitle>
+        <CardTitle>Recent Questions</CardTitle>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Question</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Occurrences</TableHead>
-              <TableHead className="text-right">Trend</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {questions?.results.map((question: any) => (
-              <TableRow key={question.questionHash}>
-                <TableCell className="font-medium">
-                  {question.question}
-                </TableCell>
-                <TableCell>{question.category || "Uncategorized"}</TableCell>
-                <TableCell className="text-right">
-                  {question.occurrences}
-                </TableCell>
-                <TableCell className="text-right">
-                  <TrendBadge trend={question.trend} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <div className="space-y-4">
+          {questions.map((question) => (
+            <div key={question.question} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">{question.question}</span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(question.lastAsked).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex flex-wrap gap-1">
+                  {question.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-muted px-2 py-1 text-xs"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {question.frequency}× asked
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { db } from '@/lib/core/db';
-import { users } from '@/lib/core/db/schema';
-import { eq } from 'drizzle-orm';
+import { createClient } from './services/supabase/server';
 
+// Protected routes that require authentication
 const protectedPaths = [
   '/api/analytics',
   '/api/qa',
@@ -19,14 +17,13 @@ const protectedPaths = [
   '/docs'
 ];
 
-// Paths that require completed onboarding
-const onboardingRequiredPaths = [
-  '/dashboard',
-  '/settings',
-  '/docs',
-  '/api/qa',
-  '/api/analytics'
-];
+// In-memory store for rate limiting
+// In production, use Redis or similar for distributed systems
+const rateLimit = new Map();
+
+// Configure rate limit
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS = 100; // requests per window
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -35,52 +32,8 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          });
-        },
-      },
-    }
-  );
-
+  // 1. Authentication Check
+  const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
 
   // Check if the request is for a protected route
@@ -99,26 +52,40 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Check onboarding status for specific routes
-  const requiresOnboarding = onboardingRequiredPaths.some(path =>
-    request.nextUrl.pathname.startsWith(path)
-  );
+  // 2. Rate Limiting (only for API routes)
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    const clientId = request.headers.get('x-forwarded-for') ?? 'anonymous';
+    const now = Date.now();
+    const windowStart = now - RATE_LIMIT_WINDOW;
 
-  if (requiresOnboarding && session) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user?.hasCompletedOnboarding) {
-      // Redirect to onboarding for pages, return 403 for API routes
-      if (request.nextUrl.pathname.startsWith('/api')) {
-        return NextResponse.json(
-          { error: 'Onboarding required' },
-          { status: 403 }
-        );
+    // Clean up old entries
+    for (const [key, timestamp] of rateLimit.entries()) {
+      if (timestamp < windowStart) {
+        rateLimit.delete(key);
       }
-      return NextResponse.redirect(new URL('/onboarding/email', request.url));
     }
+
+    // Count requests in current window
+    const requestCount = Array.from(rateLimit.entries())
+      .filter(([key, timestamp]) => key.startsWith(clientId) && timestamp > windowStart)
+      .length;
+
+    if (requestCount >= MAX_REQUESTS) {
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: {
+          'Retry-After': String(RATE_LIMIT_WINDOW / 1000),
+        },
+      });
+    }
+
+    // Store this request
+    rateLimit.set(`${clientId}-${now}`, now);
+
+    // Add rate limit headers
+    response.headers.set('X-RateLimit-Limit', String(MAX_REQUESTS));
+    response.headers.set('X-RateLimit-Remaining', String(MAX_REQUESTS - requestCount - 1));
+    response.headers.set('X-RateLimit-Reset', String(Math.ceil(windowStart / 1000)));
   }
 
   return response;

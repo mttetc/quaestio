@@ -1,5 +1,5 @@
 import { openai } from './config';
-import { QAExtractionResult } from '../email/types';
+import { QA } from '@/lib/shared/schemas/qa';
 
 export interface AutoResponse {
   subject: string;
@@ -10,7 +10,7 @@ export interface AutoResponse {
 
 export async function generateAutoResponse(
   question: string,
-  similarQAs: QAExtractionResult[]
+  similarQAs: QA[]
 ): Promise<AutoResponse> {
   const formattedQAs = similarQAs
     .map(qa => `Q: ${qa.question}\nA: ${qa.answer}`)

@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Mail, Clock, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
-import { EmailSubscription } from '@/lib/core/email/subscription/types';
+import { EmailSubscription } from '@/services/email/subscription/types';
 
 interface SubscriptionListProps {
   subscriptions: EmailSubscription[];

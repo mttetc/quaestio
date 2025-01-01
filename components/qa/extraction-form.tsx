@@ -1,88 +1,20 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { useFormState } from "react-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
-import { Mail, Loader2 } from "lucide-react";
-import { extractQAs } from "@/lib/features/qa/actions/qa";
-import { DateRange } from "react-day-picker";
-import { useEffect } from "react";
-
-interface EmailAccount {
-    id: string;
-    email: string;
-    provider: string;
-}
-
-interface FormState {
-    emailId: string;
-    dateRange: DateRange;
-    status?: {
-        error?: string;
-        success?: boolean;
-        count?: number;
-        failureReasons?: string[];
-        failedEmails?: number;
-    };
-}
-
-function ExtractButton() {
-    const { pending } = useFormStatus();
-
-    return (
-        <Button type="submit" disabled={pending} className="w-full">
-            {pending ? (
-                <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Extracting...
-                </>
-            ) : (
-                "Extract Q&As"
-            )}
-        </Button>
-    );
-}
-
-const initialState: FormState = {
-    emailId: "",
-    dateRange: {
-        from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        to: new Date(),
-    },
-};
-
-async function formAction(prevState: FormState, formData: FormData): Promise<FormState> {
-    "use server";
-
-    const emailId = formData.get("emailId") as string;
-    const dateRange = formData.get("dateRange") as string;
-    const range = dateRange ? JSON.parse(dateRange) as DateRange : prevState.dateRange;
-
-    const result = await extractQAs(formData);
-
-    return {
-        emailId: emailId || prevState.emailId,
-        dateRange: range,
-        status: result.error ? { error: result.error } : { success: true, count: result.count },
-    };
-}
+import { useToast } from "@/components/ui/use-toast";
+import { Mail } from "lucide-react";
+import { ExtractButton } from "./extract-button";
+import { formAction, initialState } from "./extract-action";
+import { useEmailAccounts, type EmailAccount } from "@/services/email/hooks/use-email-accounts";
 
 export function ExtractionForm() {
     const { toast } = useToast();
     const [state, dispatch] = useFormState(formAction, initialState);
-
-    const { data: emailAccounts, isLoading } = useQuery({
-        queryKey: ["emailAccounts"],
-        queryFn: async () => {
-            const response = await fetch("/api/email/accounts");
-            if (!response.ok) throw new Error("Failed to fetch email accounts");
-            return response.json();
-        },
-    });
+    const { data: emailAccounts, isLoading } = useEmailAccounts();
 
     useEffect(() => {
         if (state.status?.error) {
@@ -98,7 +30,7 @@ export function ExtractionForm() {
                     title: `${state.status.failedEmails} Emails Failed`,
                     description: (
                         <div className="mt-2 max-h-[200px] overflow-y-auto">
-                            {state.status.failureReasons.map((reason, i) => (
+                            {state.status.failureReasons.map((reason: string, i: number) => (
                                 <p key={i} className="text-sm mt-1">{reason}</p>
                             ))}
                         </div>
