@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Mail, Brain, LineChart, Zap } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
     const scrollToFeatures = () => {
@@ -11,7 +12,7 @@ export function HeroSection() {
 
     return (
         <section className="container mx-auto flex flex-col items-center justify-center gap-4 pb-8 pt-24 md:pt-28 min-h-[calc(100vh-4rem)]">
-            <div className="flex max-w-[980px] flex-col items-center gap-4 text-center">
+            <div className="mt-8 md:mt-0 flex max-w-[980px] flex-col items-center gap-8 text-center">
                 <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-6xl lg:leading-[1.1]">
                     Transform Your Email into
                     <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
@@ -25,14 +26,16 @@ export function HeroSection() {
                 </p>
             </div>
 
-            <div className="flex gap-4">
-                <Button size="lg">Get Started</Button>
+            <div className="flex gap-4 mt-4">
+                <Link href="/signup">
+                    <Button size="lg">Get Started</Button>
+                </Link>
                 <Button variant="outline" size="lg" onClick={scrollToFeatures}>
                     Learn More
                 </Button>
             </div>
 
-            <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-24 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                 <FeatureCard
                     icon={Mail}
                     title="Smart Q&A Extraction"
