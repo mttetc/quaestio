@@ -3,114 +3,124 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    
-    /* Vibrant primary color - Electric Blue */
-    --primary: 224 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    
-    /* Accent color - Vibrant Purple */
-    --accent: 280 100% 50%;
-    --accent-foreground: 0 0% 100%;
-    
-    /* Secondary color - Cyan */
-    --secondary: 190 100% 50%;
-    --secondary-foreground: 240 5.9% 10%;
-    
-    /* Other UI colors */
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 224 100% 50%;
-    --radius: 1rem;
-  }
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
 
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    
-    /* Darker theme variants */
-    --primary: 224 100% 60%;
-    --primary-foreground: 0 0% 100%;
-    
-    --accent: 280 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    
-    --secondary: 190 100% 60%;
-    --secondary-foreground: 0 0% 100%;
-    
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 224 100% 60%;
-  }
+        /* Vibrant primary color - Electric Blue */
+        --primary: 224 100% 50%;
+        --primary-foreground: 0 0% 100%;
+
+        /* Accent color - Vibrant Purple */
+        --accent: 280 100% 50%;
+        --accent-foreground: 0 0% 100%;
+
+        /* Secondary color - Cyan */
+        --secondary: 190 100% 50%;
+        --secondary-foreground: 240 5.9% 10%;
+
+        /* Other UI colors */
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 240 10% 3.9%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 5.9% 90%;
+        --input: 240 5.9% 90%;
+        --ring: 224 100% 50%;
+        --radius: 1rem;
+    }
+
+    .dark {
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+
+        /* Darker theme variants */
+        --primary: 224 100% 60%;
+        --primary-foreground: 0 0% 100%;
+
+        --accent: 280 100% 60%;
+        --accent-foreground: 0 0% 100%;
+
+        --secondary: 190 100% 60%;
+        --secondary-foreground: 0 0% 100%;
+
+        --card: 240 10% 3.9%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 10% 3.9%;
+        --popover-foreground: 0 0% 98%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 3.7% 15.9%;
+        --input: 240 3.7% 15.9%;
+        --ring: 224 100% 60%;
+    }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 @keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .animate-gradient {
-  background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
 }
 
 @keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
+    0% {
+        transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+        transform: translate(0px, 0px) scale(1);
+    }
 }
 
 .animate-blob {
-  animation: blob 7s infinite;
+    animation: blob 7s infinite;
 }
 
 .animation-delay-2000 {
-  animation-delay: 2s;
+    animation-delay: 2s;
 }
 
 .animation-delay-4000 {
-  animation-delay: 4s;
+    animation-delay: 4s;
+}
+
+main {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    z-index: 1;
 }
