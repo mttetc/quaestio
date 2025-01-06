@@ -1,7 +1,7 @@
-'use server';
+"use server";
 
-import { ImapFlow } from 'imapflow';
-import { simpleParser } from 'mailparser';
+import { ImapFlow } from "imapflow";
+import { simpleParser } from "mailparser";
 
 interface Email {
     id: string;
@@ -17,35 +17,38 @@ export async function getEmailsByDateRange(
     endDate: Date
 ): Promise<Email[]> {
     const client = new ImapFlow({
-        host: 'imap.gmail.com',
+        host: "imap.gmail.com",
         port: 993,
         secure: true,
         auth: {
             user: email,
-            accessToken
+            accessToken,
         },
-        logger: false
+        logger: false,
     });
 
     try {
         await client.connect();
-        const lock = await client.getMailboxLock('INBOX');
+        const lock = await client.getMailboxLock("INBOX");
 
         try {
             const messages = [];
-            for await (const message of client.fetch({
-                since: startDate,
-                before: endDate
-            }, {
-                source: true,
-                uid: true
-            })) {
+            for await (const message of client.fetch(
+                {
+                    since: startDate,
+                    before: endDate,
+                },
+                {
+                    source: true,
+                    uid: true,
+                }
+            )) {
                 const parsed = await simpleParser(message.source);
                 messages.push({
                     id: message.uid.toString(),
-                    subject: parsed.subject || '',
-                    text: parsed.text || '',
-                    date: parsed.date || new Date()
+                    subject: parsed.subject || "",
+                    text: parsed.text || "",
+                    date: parsed.date || new Date(),
                 });
             }
             return messages;
@@ -55,4 +58,4 @@ export async function getEmailsByDateRange(
     } finally {
         await client.logout();
     }
-} 
+}

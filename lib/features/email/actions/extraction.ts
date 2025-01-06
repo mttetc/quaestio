@@ -1,53 +1,41 @@
-import { db } from "@/services/db";
+"use server";
+
+import { db } from "@/lib/core/db";
 import { emailAccounts } from "@/lib/core/db/schema";
-import { eq } from "drizzle-orm";
 import { decryptAccessToken } from "@/lib/core/encryption";
-import { getEmailsByDateRange } from "./imap";
-import { extractQAPairs } from "@/lib/infrastructure/ai/qa-extractor";
-import { CreateQAInput } from "@/lib/shared/schemas/qa";
+import { getEmailsByDateRange } from "@/lib/features/email/actions/imap";
+import { eq } from "drizzle-orm";
 
-export async function extractQAsFromEmails(
-    emailAccountId: string,
-    startDate: Date,
-    endDate: Date
-): Promise<CreateQAInput[]> {
-    // Get user's email account
-    const [emailAccount] = await db.select()
-        .from(emailAccounts)
-        .where(eq(emailAccounts.id, emailAccountId))
-        .limit(1);
+export async function extractEmails(emailAccountId: string) {
+    try {
+        const [emailAccount] = await db
+            .select()
+            .from(emailAccounts)
+            .where(eq(emailAccounts.id, emailAccountId))
+            .limit(1);
 
-    if (!emailAccount) {
-        throw new Error('No email account found');
-    }
-
-    // Get emails for the date range
-    const accessToken = await decryptAccessToken(emailAccount.encryptedAccessToken, emailAccount.encryptionIV);
-    const emails = await getEmailsByDateRange(
-        emailAccount.email,
-        accessToken,
-        startDate,
-        endDate
-    );
-
-    const qas: CreateQAInput[] = [];
-
-    for (const email of emails) {
-        const extractedQAData = await extractQAPairs(email.text);
-        if (!extractedQAData) continue;
-
-        for (const qaData of extractedQAData) {
-            qas.push({
-                ...qaData,
-                tags: qaData.tags || [],
-                metadata: {
-                    date: email.date,
-                    subject: email.subject,
-                    context: qaData.context || null
-                }
-            });
+        if (!emailAccount) {
+            throw new Error("Email account not found");
         }
-    }
 
-    return qas;
-} 
+        const accessToken = await decryptAccessToken(
+            emailAccount.encryptedAccessToken,
+            emailAccount.encryptionIV,
+            emailAccount.encryptionTag
+        );
+
+        if (!accessToken) {
+            throw new Error("Failed to decrypt access token");
+        }
+
+        return getEmailsByDateRange(
+            emailAccount.email,
+            accessToken,
+            new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            new Date()
+        );
+    } catch (error) {
+        console.error("Error extracting emails:", error);
+        throw error;
+    }
+}

@@ -8,6 +8,13 @@
       "when": 1734895371889,
       "tag": "0000_even_franklin_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1736204280823,
+      "tag": "0001_swift_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

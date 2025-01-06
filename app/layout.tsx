@@ -1,10 +1,17 @@
-import { Inter } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import { Providers } from "@/lib/providers";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme/theme-provider";
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({
+    subsets: ["latin"],
+    variable: "--font-outfit",
+});
+
+const inter = Inter({
+    subsets: ["latin"],
+    variable: "--font-inter",
+});
 
 export const metadata = {
     title: "Quaestio - Email Q&A Extraction",
@@ -14,11 +21,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={inter.className}>
-                <ThemeProvider>
+            <body className={`${outfit.variable} ${inter.variable} font-sans`}>
+                <Providers>
                     {children}
                     <Toaster />
-                </ThemeProvider>
+                </Providers>
             </body>
         </html>
     );

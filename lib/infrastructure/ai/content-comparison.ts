@@ -1,24 +1,24 @@
-import { QA } from '@/lib/shared/schemas/qa';
-import { WebPage } from '../integrations/web-scraper';
-import { ChatPromptTemplate, HumanMessagePromptTemplate } from '@langchain/core/prompts';
-import { chatModel } from './config';
+import { QA } from "@/lib/schemas/qa";
+import { WebPage } from "../integrations/web-scraper";
+import { ChatPromptTemplate, HumanMessagePromptTemplate } from "@langchain/core/prompts";
+import { chatModel } from "./config";
 
 export interface ContentGap {
-  topic: string;
-  frequency: number;
-  relevance: number;
-  suggestedContent: string;
-  relatedQuestions: string[];
+    topic: string;
+    frequency: number;
+    relevance: number;
+    suggestedContent: string;
+    relatedQuestions: string[];
 }
 
 export interface ContentAnalysis {
-  gaps: ContentGap[];
-  coverage: number;
-  recommendations: string[];
+    gaps: ContentGap[];
+    coverage: number;
+    recommendations: string[];
 }
 
 const prompt = ChatPromptTemplate.fromPromptMessages([
-  HumanMessagePromptTemplate.fromTemplate(`
+    HumanMessagePromptTemplate.fromTemplate(`
 Analyze the relationship between customer questions and website content.
 Identify gaps where frequently asked questions aren't well-addressed on the website.
 
@@ -42,27 +42,22 @@ Return analysis as JSON:
   "coverage": number (0-1) indicating how well website covers Q&A topics,
   "recommendations": ["Prioritized list of content recommendations"]
 }
-`)
+`),
 ]);
 
-export async function analyzeContentGaps(
-  website: WebPage,
-  qas: QA[]
-): Promise<ContentAnalysis> {
-  const qaContent = qas
-    .map(qa => `Q: ${qa.question}\nA: ${qa.answer}`)
-    .join('\n\n');
+export async function analyzeContentGaps(website: WebPage, qas: QA[]): Promise<ContentAnalysis> {
+    const qaContent = qas.map((qa) => `Q: ${qa.question}\nA: ${qa.answer}`).join("\n\n");
 
-  const messages = await prompt.formatMessages({
-    websiteContent: `
+    const messages = await prompt.formatMessages({
+        websiteContent: `
       Title: ${website.title}
-      Headings: ${website.headings.join(' | ')}
+      Headings: ${website.headings.join(" | ")}
       Content: ${website.content}
     `,
-    qaContent,
-  });
+        qaContent,
+    });
 
-  const response = await chatModel.invoke(messages);
-  const result = JSON.parse(response.text) as ContentAnalysis;
-  return result;
-} 
+    const response = await chatModel.invoke(messages);
+    const result = JSON.parse(response.text) as ContentAnalysis;
+    return result;
+}

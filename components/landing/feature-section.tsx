@@ -55,7 +55,7 @@ const features = [
 
 export function FeatureSection() {
     return (
-        <section className="relative">
+        <section className="relative min-h-[100dvh]">
             <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
 
             <div className="container relative mx-auto space-y-16 py-24 sm:py-32" id="features">

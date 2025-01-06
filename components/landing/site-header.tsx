@@ -13,15 +13,11 @@ export function SiteHeader() {
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
-            const scrollingDown = currentScrollY > lastScrollY;
-
-            // Instant direction detection
             if (currentScrollY > lastScrollY) {
                 setShouldShow(false);
             } else {
                 setShouldShow(true);
             }
-
             setLastScrollY(currentScrollY);
         };
 
@@ -40,19 +36,21 @@ export function SiteHeader() {
             transition={{
                 duration: 0.2,
                 ease: "easeInOut",
-                opacity: { duration: 0.15 }, // Slightly faster opacity transition
+                opacity: { duration: 0.15 },
             }}
         >
             <Link className="flex items-center justify-center" href="/">
-                <div className="p-2 rounded-xl bg-primary/10">
-                    <Mail className="h-6 w-6 text-primary" />
+                <div className="p-1.5 rounded-lg bg-primary/5 border border-primary/10">
+                    <Mail className="h-4 w-4 text-primary" />
                 </div>
-                <span className="ml-2 text-2xl font-bold text-gradient">Quaestio</span>
+                <span className="ml-2 text-xl font-medium tracking-tight bg-gradient-to-r from-primary/90 via-secondary/90 to-accent/90 bg-clip-text text-transparent">
+                    Quaestio
+                </span>
             </Link>
             <nav className="ml-auto flex items-center gap-4 sm:gap-6">
                 <ThemeSwitcher />
                 <Link
-                    className="text-sm font-medium px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors"
+                    className="text-sm font-medium px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors text-foreground hover:text-foreground"
                     href="/login"
                 >
                     Sign In

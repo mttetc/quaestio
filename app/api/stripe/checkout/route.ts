@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { stripe } from "@/services/stripe/client";
-import { SUBSCRIPTION_TIERS } from "@/lib/shared/config/pricing";
-import { db } from "@/services/db";
+import { SUBSCRIPTION_TIERS } from "@/lib/config/pricing";
+import { db } from "@/lib/core/db";
 import { users } from "@/lib/core/db/schema";
 import { eq } from "drizzle-orm";
 

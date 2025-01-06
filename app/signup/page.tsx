@@ -1,31 +1,27 @@
-import Link from "next/link";
-import { AuthForm } from "@/components/auth/auth-form";
-import { Mail } from "lucide-react";
+"use client";
 
-export default function SignUpPage() {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex flex-col justify-center items-center p-4 space-y-6">
-        <div className="flex items-center space-x-2">
-          <Mail className="h-6 w-6" />
-          <span className="text-2xl font-bold">Quaestio</span>
+import { AuthForm } from "@/components/auth/auth-form";
+import { useAuthRedirect } from "@/services/auth/hooks/use-auth-redirect";
+import { Loader2 } from "lucide-react";
+
+export default function SignupPage() {
+    const { isLoading } = useAuthRedirect();
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="container max-w-lg mx-auto py-8">
+            <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold">Create an Account</h1>
+                <p className="text-muted-foreground">Sign up to get started with Quaestio</p>
+            </div>
+            <AuthForm type="signup" />
         </div>
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Create an account
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Enter your email to get started
-          </p>
-        </div>
-        <AuthForm type="signup" />
-        <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link href="/login" className="underline underline-offset-4 hover:text-primary">
-            Sign in
-          </Link>
-        </p>
-      </div>
-    </div>
-  );
+    );
 }

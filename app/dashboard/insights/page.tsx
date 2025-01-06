@@ -8,7 +8,7 @@ import { VolumeByTagCard } from "@/components/analytics/volume-by-tag-card";
 import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { PageHeader } from "@/components/ui/page-header";
-import { PAGE_HEADERS } from "@/lib/shared/constants/text";
+import { PAGE_HEADERS } from "@/lib/constants/text";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export default function InsightsPage() {
@@ -24,10 +24,7 @@ export default function InsightsPage() {
 
     return (
         <div className="space-y-6">
-            <PageHeader 
-                title={PAGE_HEADERS.INSIGHTS.title}
-                description={PAGE_HEADERS.INSIGHTS.description}
-            />
+            <PageHeader title={PAGE_HEADERS.INSIGHTS.title} description={PAGE_HEADERS.INSIGHTS.description} />
 
             <div className="flex justify-end">
                 <DatePickerWithRange date={dateRange} onDateChange={handleDateRangeChange} />

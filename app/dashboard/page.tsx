@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { Providers } from "@/lib/providers";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 
@@ -15,11 +14,9 @@ export default function DashboardPage() {
                 <QuickActions />
                 <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
                     <h3 className="font-semibold mb-2">Recent Activity</h3>
-                    <Providers>
-                        <Suspense fallback={<div>Loading recent activity...</div>}>
-                            <RecentActivity />
-                        </Suspense>
-                    </Providers>
+                    <Suspense fallback={<div>Loading recent activity...</div>}>
+                        <RecentActivity />
+                    </Suspense>
                 </div>
             </div>
         </div>

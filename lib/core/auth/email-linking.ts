@@ -1,28 +1,33 @@
-'use client';
+"use server";
 
-import { supabase } from '@/lib/infrastructure/supabase/client';
-import { EmailLinkingStatus } from './types';
+import { emailAccounts } from "@/lib/core/db/schema";
+import { eq } from "drizzle-orm";
+import { encryptAccessToken } from "@/lib/core/encryption";
+import { db } from "@/lib/core/db";
 
-export async function checkEmailLinkingStatus(userId: string): Promise<EmailLinkingStatus> {
-  const { data } = await supabase.from('email_accounts')
-    .select('id')
-    .eq('user_id', userId)
-    .limit(1);
+export async function checkEmailLinkingStatus(userId: string) {
+    const accounts = await db.query.emailAccounts.findMany({
+        where: eq(emailAccounts.userId, userId),
+    });
 
-  return {
-    hasLinkedEmail: Boolean(data && data.length > 0),
-    emailCount: data?.length || 0
-  };
+    return {
+        hasLinkedEmail: accounts.length > 0,
+    };
 }
 
-export async function linkEmailAccount(userId: string, email: string, provider: string) {
-  const { error } = await supabase.from('email_accounts').insert({
-    user_id: userId,
-    email,
-    provider,
-    access_token: '', // Will be populated after OAuth
-    created_at: new Date().toISOString()
-  });
+export async function linkEmailAccount(userId: string, email: string, accessToken: string, provider: string) {
+    const { encryptedData, iv, tag } = encryptAccessToken(accessToken);
 
-  if (error) throw error;
+    await db.insert(emailAccounts).values({
+        userId,
+        email,
+        encryptedAccessToken: encryptedData,
+        encryptionIV: iv,
+        encryptionTag: tag,
+        provider,
+    });
+
+    return {
+        success: true,
+    };
 }

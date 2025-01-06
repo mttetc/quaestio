@@ -1,10 +1,10 @@
-import { db } from "@/services/db";
+import { db } from "@/lib/core/db";
 import { emailAccounts } from "@/lib/core/db/schema";
 import { eq } from "drizzle-orm";
 import { decryptAccessToken } from "@/lib/core/encryption";
 import { getEmailsByDateRange } from "@/lib/features/email/actions/imap";
 import { extractQAPairs } from "@/lib/infrastructure/ai/qa-extractor";
-import { CreateQAInput } from "@/lib/shared/schemas/qa";
+import { CreateQAInput } from "@/lib/schemas/qa";
 
 export async function extractQAsFromEmails(
     emailAccountId: string,
@@ -12,23 +12,19 @@ export async function extractQAsFromEmails(
     endDate: Date
 ): Promise<CreateQAInput[]> {
     // Get user's email account
-    const [emailAccount] = await db.select()
-        .from(emailAccounts)
-        .where(eq(emailAccounts.id, emailAccountId))
-        .limit(1);
+    const [emailAccount] = await db.select().from(emailAccounts).where(eq(emailAccounts.id, emailAccountId)).limit(1);
 
     if (!emailAccount) {
-        throw new Error('No email account found');
+        throw new Error("No email account found");
     }
 
     // Get emails for the date range
-    const accessToken = await decryptAccessToken(emailAccount.encryptedAccessToken, emailAccount.encryptionIV);
-    const emails = await getEmailsByDateRange(
-        emailAccount.email,
-        accessToken,
-        startDate,
-        endDate
+    const accessToken = await decryptAccessToken(
+        emailAccount.encryptedAccessToken,
+        emailAccount.encryptionIV,
+        emailAccount.encryptionTag
     );
+    const emails = await getEmailsByDateRange(emailAccount.email, accessToken, startDate, endDate);
 
     const qas: CreateQAInput[] = [];
 
@@ -43,11 +39,11 @@ export async function extractQAsFromEmails(
                 metadata: {
                     date: email.date,
                     subject: email.subject,
-                    context: qaData.context || null
-                }
+                    context: qaData.context || null,
+                },
             });
         }
     }
 
     return qas;
-} 
+}

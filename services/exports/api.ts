@@ -1,24 +1,24 @@
-import { api } from "@/lib/shared/api";
+import { api } from "@/lib/api";
 
 export interface ExportOptions {
-    format: 'csv' | 'json';
-    type: 'qa' | 'analytics';
+    format: "csv" | "json";
+    type: "qa" | "analytics";
     startDate?: string;
     endDate?: string;
 }
 
 export async function exportData(options: ExportOptions) {
-    const response = await fetch('/api/exports', {
-        method: 'POST',
+    const response = await fetch("/api/exports", {
+        method: "POST",
         headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         },
         body: JSON.stringify(options),
     });
 
     if (!response.ok) {
-        throw new Error('Failed to export data');
+        throw new Error("Failed to export data");
     }
 
     return response.blob();
-} 
+}
