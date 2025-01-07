@@ -12,6 +12,7 @@ export async function getQAs(filter?: QAFilter) {
     return db.query.qaEntries.findMany({
         where: eq(qaEntries.userId, user.id),
         orderBy: (qaEntries, { desc }) => [desc(qaEntries.createdAt)],
+        limit: filter?.limit,
     });
 }
 

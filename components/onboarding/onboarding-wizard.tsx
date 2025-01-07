@@ -1,24 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { linkEmailAccount } from "@/lib/core/auth/email-linking";
-import { useUser } from "@/services/auth/hooks/use-user";
 import { useToast } from "@/components/ui/use-toast";
 import { EmailSetupCore } from "@/components/email/email-setup-core";
+import { createClient } from "@/services/supabase/client";
 
 export function OnboardingWizard() {
     const router = useRouter();
-    const { data: user, isLoading: isLoadingUser } = useUser();
     const { toast } = useToast();
+    const [isPending, startTransition] = useTransition();
+    const [user, setUser] = useState<{ id: string } | null>(null);
     const [linkingStatus, setLinkingStatus] = useState<{
         success?: boolean;
         error?: string;
     }>({});
 
-    if (isLoadingUser) {
+    // Get user on mount
+    startTransition(async () => {
+        const supabase = createClient();
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+
+        if (!user) {
+            router.push("/login");
+        }
+    });
+
+    if (isPending) {
         return (
             <div className="flex items-center justify-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -27,7 +41,6 @@ export function OnboardingWizard() {
     }
 
     if (!user) {
-        router.push("/login");
         return null;
     }
 

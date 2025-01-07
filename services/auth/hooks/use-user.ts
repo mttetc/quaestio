@@ -30,5 +30,9 @@ export function useCompleteOnboarding() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["user"] });
         },
+        retry: false,
+        onError: (error) => {
+            console.error("Failed to complete onboarding:", error);
+        },
     });
 }

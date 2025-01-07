@@ -3,12 +3,12 @@
 import { createClient } from "@/services/supabase/server";
 import { redirect } from "next/navigation";
 
-export interface AuthState {
+export interface AuthResult {
+    success: boolean;
     error?: string;
-    success?: boolean;
 }
 
-export async function signIn(_: unknown, formData: FormData) {
+export async function signIn(_: unknown, formData: FormData): Promise<AuthResult> {
     const supabase = await createClient();
 
     const email = formData.get("email") as string;
@@ -20,13 +20,13 @@ export async function signIn(_: unknown, formData: FormData) {
     });
 
     if (error) {
-        throw error;
+        return { success: false, error: error.message };
     }
 
     redirect("/dashboard");
 }
 
-export async function signUp(_: unknown, formData: FormData) {
+export async function signUp(_: unknown, formData: FormData): Promise<AuthResult> {
     const supabase = await createClient();
 
     const email = formData.get("email") as string;
@@ -41,23 +41,28 @@ export async function signUp(_: unknown, formData: FormData) {
     });
 
     if (error) {
-        throw error;
+        if (error.message.includes("User already registered")) {
+            return { success: false, error: "This email is already registered. Please sign in instead." };
+        }
+        return { success: false, error: error.message };
     }
 
     redirect("/login?verified=true");
 }
 
-export async function signOut() {
+export async function signOut(): Promise<AuthResult> {
     const supabase = await createClient();
 
     const { error } = await supabase.auth.signOut();
 
-    if (error) throw error;
+    if (error) {
+        return { success: false, error: error.message };
+    }
 
-    return { success: true };
+    redirect("/login");
 }
 
-export async function completeOnboarding(): Promise<AuthState> {
+export async function completeOnboarding(): Promise<AuthResult> {
     const supabase = await createClient();
 
     try {
@@ -65,7 +70,9 @@ export async function completeOnboarding(): Promise<AuthState> {
             data: { user },
             error: userError,
         } = await supabase.auth.getUser();
-        if (userError || !user) throw new Error("Failed to fetch user");
+        if (userError || !user) {
+            return { success: false, error: "Failed to fetch user" };
+        }
 
         const { error: updateError } = await supabase
             .from("users")
@@ -73,11 +80,14 @@ export async function completeOnboarding(): Promise<AuthState> {
             .eq("id", user.id)
             .single();
 
-        if (updateError) throw new Error("Failed to complete onboarding");
+        if (updateError) {
+            return { success: false, error: "Failed to complete onboarding" };
+        }
 
         return { success: true };
     } catch (error) {
         return {
+            success: false,
             error: error instanceof Error ? error.message : "Failed to complete onboarding",
         };
     }

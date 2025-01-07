@@ -50,3 +50,7 @@ export async function updateUser(data: Partial<User>): Promise<User> {
         ...data,
     };
 }
+
+export async function completeOnboarding(): Promise<User> {
+    return updateUser({ onboardingCompleted: true });
+}

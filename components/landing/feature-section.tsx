@@ -17,39 +17,28 @@ import {
 
 const features = [
     {
-        title: "Smart Q&A Extraction",
-        description:
-            "Automatically identify and extract meaningful questions and answers from your email conversations.",
+        title: "Email Q&A Extraction",
+        description: "Find and save questions and answers from your email conversations.",
         icon: Mail,
-        features: [
-            "AI-powered Q&A detection",
-            "Context-aware extraction",
-            "Confidence scoring",
-            "Bulk processing capabilities",
-        ],
+        features: ["Question detection", "Answer matching", "Accuracy scoring", "Batch processing"],
     },
     {
-        title: "Knowledge Organization",
-        description: "Turn your email Q&As into a searchable knowledge base with intelligent organization.",
+        title: "Search & Organization",
+        description: "Save email Q&As in a searchable database.",
         icon: Brain,
-        features: [
-            "AI-powered categorization",
-            "Automatic tagging",
-            "Smart search capabilities",
-            "Knowledge base export",
-        ],
+        features: ["Topic grouping", "Auto-tagging", "Search", "Export options"],
     },
     {
-        title: "Analytics & Insights",
-        description: "Gain valuable insights into your email communications and Q&A patterns.",
+        title: "Reports & Data",
+        description: "See how your email Q&As are used and distributed.",
         icon: LineChart,
-        features: ["Response time tracking", "Sentiment analysis", "Topic clustering", "Trend identification"],
+        features: ["Response tracking", "Message analysis", "Topic groups", "Pattern detection"],
     },
     {
-        title: "Email Automation",
-        description: "Streamline your email workflow with intelligent automation features.",
+        title: "Email Tools",
+        description: "Manage your emails more efficiently.",
         icon: Zap,
-        features: ["Newsletter management", "Bulk unsubscribe", "Task automation", "Smart categorization"],
+        features: ["Newsletter handling", "Unsubscribe tools", "Task handling", "Email sorting"],
     },
 ];
 

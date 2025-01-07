@@ -5,11 +5,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { EmailSetupCore } from "@/components/email/email-setup-core";
 import { addEmailAccount } from "@/lib/features/email/actions/email";
-import { useUser } from "@/services/auth/hooks/use-user";
+import { createClient } from "@/services/supabase/client";
+import { useTransition } from "react";
+import { Loader2 } from "lucide-react";
 
 export function EmailSetupSteps() {
     const { toast } = useToast();
-    const { data: user } = useUser();
+    const [isPending, startTransition] = useTransition();
+    const [user, setUser] = React.useState<{ id: string } | null>(null);
+
+    // Get user on mount
+    startTransition(async () => {
+        const supabase = createClient();
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+    });
+
+    if (isPending) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
 
     const handleSubmit = async (email: string, appPassword: string) => {
         if (!user) {

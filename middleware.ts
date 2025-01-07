@@ -1,19 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "./services/supabase/server";
-
-// Protected routes that require authentication
-const protectedPaths = [
-    "/api/analytics",
-    "/api/qa",
-    "/api/email",
-    "/api/user",
-    "/api/exports",
-    "/api/integrations",
-    "/api/analysis",
-    "/dashboard",
-    "/settings",
-    "/docs",
-];
+import { isPublicRoute, isPrivateRoute } from "./lib/constants/routes";
 
 // In-memory store for rate limiting
 // In production, use Redis or similar for distributed systems
@@ -23,32 +9,47 @@ const rateLimit = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 100; // requests per window
 
+if (!process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_PROJECT_REF is not set");
+}
+
 export async function middleware(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+
+    // Skip middleware for Supabase auth endpoints
+    if (pathname.includes("/auth/v1/")) {
+        return NextResponse.next();
+    }
+
+    // Check if user is authenticated via cookie
+    const hasAuthCookie = request.cookies.has(`sb-${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF}-auth-token`);
+
+    // Handle routing based on auth status
+    if (hasAuthCookie) {
+        // Authenticated users shouldn't access public routes
+        if (isPublicRoute(pathname)) {
+            return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+    } else {
+        // Non-authenticated users shouldn't access private routes
+        if (isPrivateRoute(pathname)) {
+            return NextResponse.redirect(new URL("/login", request.url));
+        }
+    }
+
+    // API routes always require authentication
+    if (pathname.startsWith("/api/") && !hasAuthCookie) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     let response = NextResponse.next({
         request: {
             headers: request.headers,
         },
     });
 
-    // 1. Authentication Check
-    const supabase = await createClient();
-    const {
-        data: { session },
-    } = await supabase.auth.getSession();
-
-    // Check if the request is for a protected route
-    const isProtectedRoute = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
-
-    if (isProtectedRoute && !session) {
-        // Redirect to login for pages, return 401 for API routes
-        if (request.nextUrl.pathname.startsWith("/api")) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-        return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    // 2. Rate Limiting (only for API routes)
-    if (request.nextUrl.pathname.startsWith("/api")) {
+    // Rate Limiting (only for API routes)
+    if (pathname.startsWith("/api")) {
         const clientId = request.headers.get("x-forwarded-for") ?? "anonymous";
         const now = Date.now();
         const windowStart = now - RATE_LIMIT_WINDOW;

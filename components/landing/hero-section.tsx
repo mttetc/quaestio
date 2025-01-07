@@ -14,14 +14,13 @@ export function HeroSection() {
         <section className="container mx-auto flex flex-col items-center justify-center gap-4 pb-8 pt-24 md:pt-28 min-h-[100dvh]">
             <div className="mt-8 md:mt-0 flex max-w-[980px] flex-col items-center gap-8 text-center">
                 <h1 className="text-4xl font-medium leading-tight tracking-tight md:text-6xl lg:leading-[1.2] max-w-3xl">
-                    Transform Your Email into{" "}
+                    Save Questions and Answers from Your{" "}
                     <span className="inline-block bg-gradient-to-r from-primary/90 via-secondary/90 to-accent/90 bg-clip-text text-transparent font-semibold">
-                        Actionable Knowledge
+                        Email
                     </span>
                 </h1>
                 <p className="max-w-[750px] text-lg text-muted-foreground sm:text-xl">
-                    Automatically extract Q&As, generate insights, and manage your email communications intelligently.
-                    Your email inbox, reimagined with AI.
+                    Find and save Q&As from your emails. Search your past answers and track common questions.
                 </p>
             </div>
 

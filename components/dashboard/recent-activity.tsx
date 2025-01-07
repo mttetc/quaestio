@@ -6,28 +6,22 @@ import Link from "next/link";
 import { useQAs } from "@/services/qa/hooks/use-qa";
 
 export function RecentActivity() {
-    const dateRange = {
-        from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
-        to: new Date()
-    };
-
-    const { data: qas, isLoading } = useQAs({
-        dateRange,
-        // Sort by most recent first is handled by the service
-    });
+    const { data: qas, isLoading } = useQAs({ limit: 5 });
 
     if (isLoading) {
-        return <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-                <div key={i} className="animate-pulse flex items-start space-x-3">
-                    <div className="h-6 w-6 rounded bg-gray-200" />
-                    <div className="space-y-2 flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-3/4" />
-                        <div className="h-3 bg-gray-200 rounded w-1/4" />
+        return (
+            <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse flex items-start space-x-3">
+                        <div className="h-6 w-6 rounded bg-gray-200" />
+                        <div className="space-y-2 flex-1">
+                            <div className="h-4 bg-gray-200 rounded w-3/4" />
+                            <div className="h-3 bg-gray-200 rounded w-1/4" />
+                        </div>
                     </div>
-                </div>
-            ))}
-        </div>;
+                ))}
+            </div>
+        );
     }
 
     if (!qas?.length) {
@@ -39,13 +33,10 @@ export function RecentActivity() {
         );
     }
 
-    // Show only the 5 most recent QAs
-    const recentQAs = qas.slice(0, 5);
-
     return (
         <div className="space-y-4">
-            {recentQAs.map((qa) => (
-                <Link 
+            {qas.map((qa) => (
+                <Link
                     key={qa.id}
                     href={`/dashboard/qa/${qa.id}`}
                     className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors"
@@ -61,4 +52,4 @@ export function RecentActivity() {
             ))}
         </div>
     );
-} 
+}
