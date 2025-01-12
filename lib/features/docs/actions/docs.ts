@@ -1,18 +1,21 @@
 "use server";
 
+import { z } from "zod";
 import { db } from "@/lib/core/db";
 import { qaEntries } from "@/lib/core/db/schema";
-import { eq, inArray } from "drizzle-orm";
-import { openai } from "@/lib/infrastructure/ai/config";
+import { inArray } from "drizzle-orm";
+import { generateDocsFromQA } from "@/lib/features/docs/ai/docs-generator";
 
-interface DocsState {
-    error?: string;
-    success?: boolean;
-    preview?: string;
-    title: string;
-    description: string;
-    selectedQAs: string[];
-}
+export const docsStateSchema = z.object({
+    error: z.string().optional(),
+    success: z.boolean().optional(),
+    preview: z.string().optional(),
+    title: z.string(),
+    description: z.string(),
+    selectedQAs: z.array(z.string()),
+});
+
+export type DocsState = z.infer<typeof docsStateSchema>;
 
 export async function generateDocs(prevState: DocsState, formData: FormData): Promise<DocsState> {
     try {
@@ -31,38 +34,7 @@ export async function generateDocs(prevState: DocsState, formData: FormData): Pr
             where: inArray(qaEntries.id, selectedQAs),
         });
 
-        const prompt = `
-      Generate comprehensive documentation from these Q&A pairs:
-      ${JSON.stringify(entries, null, 2)}
-
-      Use this title: ${title}
-      And this description: ${description}
-
-      Format the documentation as markdown with:
-      - Clear section headings based on categories/tags
-      - Most important information first
-      - Proper context and explanations
-      - Code examples and references where relevant
-      - Clear, concise language
-      - Proper markdown formatting
-    `;
-
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4-turbo-preview",
-            messages: [
-                {
-                    role: "system",
-                    content:
-                        "You are a technical documentation expert that creates clear, well-structured documentation from Q&A content.",
-                },
-                {
-                    role: "user",
-                    content: prompt,
-                },
-            ],
-        });
-
-        const preview = completion.choices[0].message.content || "";
+        const preview = await generateDocsFromQA(entries, title, description);
 
         return {
             title,

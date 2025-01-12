@@ -10,13 +10,21 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRef, useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { submitQA } from "@/lib/features/qa/actions";
-import { QA } from "@/lib/schemas/qa";
+import { submitQA } from "@/lib/features/qa/actions/submit-qa";
+import { qaEntries } from "@/lib/core/db/schema";
+import type { InferSelectModel } from "drizzle-orm";
+import type { QAFieldErrors } from "@/lib/features/qa/schemas/qa";
 
 interface QAFormProps {
-    qa?: QA;
+    qa?: InferSelectModel<typeof qaEntries>;
     onSuccess?: () => void;
     className?: string;
+}
+
+interface QAFormState {
+    error?: string;
+    message?: string;
+    fieldErrors: QAFieldErrors;
 }
 
 function SubmitButton() {
@@ -28,10 +36,10 @@ function SubmitButton() {
     );
 }
 
-const initialState = {
+const initialState: QAFormState = {
     error: undefined,
     message: undefined,
-    fieldErrors: {} as Record<string, string[]>,
+    fieldErrors: {},
 };
 
 export function QAForm({ qa, onSuccess, className }: QAFormProps) {
@@ -39,7 +47,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
     const formRef = useRef<HTMLFormElement>(null);
     const [confidence, setConfidence] = useState(qa?.confidence ?? 100);
     const [state, formAction] = useFormState(
-        (prevState: any, formData: FormData) => submitQA(qa, prevState, formData),
+        (prevState: QAFormState, formData: FormData) => submitQA(qa, prevState, formData),
         initialState
     );
 
@@ -77,7 +85,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
                             aria-invalid={!!state.fieldErrors.question}
                             aria-errormessage="question-error"
                         />
-                        {state.fieldErrors.question?.map((error, i) => (
+                        {state.fieldErrors.question?.map((error: string, i: number) => (
                             <p key={i} id="question-error" className="text-sm text-destructive mt-1">
                                 {error}
                             </p>
@@ -94,7 +102,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
                             aria-invalid={!!state.fieldErrors.answer}
                             aria-errormessage="answer-error"
                         />
-                        {state.fieldErrors.answer?.map((error, i) => (
+                        {state.fieldErrors.answer?.map((error: string, i: number) => (
                             <p key={i} id="answer-error" className="text-sm text-destructive mt-1">
                                 {error}
                             </p>
@@ -110,7 +118,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
                             aria-invalid={!!state.fieldErrors.tags}
                             aria-errormessage="tags-error"
                         />
-                        {state.fieldErrors.tags?.map((error, i) => (
+                        {state.fieldErrors.tags?.map((error: string, i: number) => (
                             <p key={i} id="tags-error" className="text-sm text-destructive mt-1">
                                 {error}
                             </p>
@@ -128,7 +136,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
                                 <SelectItem value="high">High</SelectItem>
                             </SelectContent>
                         </Select>
-                        {state.fieldErrors.importance?.map((error, i) => (
+                        {state.fieldErrors.importance?.map((error: string, i: number) => (
                             <p key={i} className="text-sm text-destructive mt-1">
                                 {error}
                             </p>
@@ -144,7 +152,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
                             max={100}
                             step={1}
                         />
-                        {state.fieldErrors.confidence?.map((error, i) => (
+                        {state.fieldErrors.confidence?.map((error: string, i: number) => (
                             <p key={i} className="text-sm text-destructive mt-1">
                                 {error}
                             </p>
@@ -160,7 +168,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
                             aria-invalid={!!state.fieldErrors["metadata.subject"]}
                             aria-errormessage="subject-error"
                         />
-                        {state.fieldErrors["metadata.subject"]?.map((error, i) => (
+                        {state.fieldErrors["metadata.subject"]?.map((error: string, i: number) => (
                             <p key={i} id="subject-error" className="text-sm text-destructive mt-1">
                                 {error}
                             </p>
@@ -176,7 +184,7 @@ export function QAForm({ qa, onSuccess, className }: QAFormProps) {
                             aria-invalid={!!state.fieldErrors["metadata.context"]}
                             aria-errormessage="context-error"
                         />
-                        {state.fieldErrors["metadata.context"]?.map((error, i) => (
+                        {state.fieldErrors["metadata.context"]?.map((error: string, i: number) => (
                             <p key={i} id="context-error" className="text-sm text-destructive mt-1">
                                 {error}
                             </p>

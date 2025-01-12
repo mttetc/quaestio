@@ -3,9 +3,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { ContentAnalysis, ContentGap } from "@/lib/infrastructure/ai/content-comparison";
 import { AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { generateQuestionKey, generateGapKey, generateRecommendationKey } from "@/lib/utils/key-generation";
+import { ContentAnalysis, ContentGap } from "@/lib/features/analytics/schemas/content";
 
 interface ContentGapsDisplayProps {
     analysis: ContentAnalysis;

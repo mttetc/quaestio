@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/core/db";
-import { users } from "@/lib/core/db/schema";
+import { profiles } from "@/lib/core/db/schema";
 import { sql } from "drizzle-orm";
 
 export const runtime = "edge";
@@ -14,13 +14,14 @@ export async function POST(request: NextRequest) {
         }
 
         // Reset monthly usage for users whose last reset was more than a month ago
-        const result = await db.execute(sql`
-            UPDATE ${users}
-            SET monthly_usage = 0,
-                last_usage_reset = NOW()
-            WHERE last_usage_reset < NOW() - INTERVAL '1 month'
-            RETURNING id
-        `);
+        const result = await db
+            .update(profiles)
+            .set({
+                monthlyUsage: 0,
+                lastUsageReset: new Date(),
+            })
+            .where(sql`last_usage_reset < NOW() - INTERVAL '1 month'`)
+            .returning({ id: profiles.id });
 
         return NextResponse.json({
             success: true,

@@ -4,24 +4,38 @@ import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { EmailSetupCore } from "@/components/email/email-setup-core";
-import { addEmailAccount } from "@/lib/features/email/actions/email";
-import { createClient } from "@/services/supabase/client";
+import { addEmailAccount } from "@/lib/features/email/actions/add-account";
+import { createClient, getURL } from "@/lib/infrastructure/supabase/client";
 import { useTransition } from "react";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function EmailSetupSteps() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
-    const [user, setUser] = React.useState<{ id: string } | null>(null);
+    const [user, setUser] = useState<any>(null);
 
-    // Get user on mount
-    startTransition(async () => {
-        const supabase = createClient();
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user);
-    });
+    useEffect(() => {
+        startTransition(async () => {
+            const supabase = await createClient();
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+            setUser(user);
+        });
+    }, []);
+
+    // Add error handling for auth redirects
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        if (params.get("error_code")?.startsWith("4")) {
+            toast({
+                title: "Authentication Error",
+                description: params.get("error_description"),
+                variant: "destructive",
+            });
+        }
+    }, [toast]);
 
     if (isPending) {
         return (

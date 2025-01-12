@@ -1,53 +1,56 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/services/stripe/client";
+import { stripe } from "@/lib/infrastructure/stripe/client";
 import { db } from "@/lib/core/db";
-import { users } from "@/lib/core/db/schema";
+import { profiles } from "@/lib/core/db/schema";
 import { eq } from "drizzle-orm";
-import { handleSubscriptionChange } from "@/services/stripe/api";
+import type Stripe from "stripe";
+
+async function handleSubscriptionChange(customerId: string, status: string) {
+    await db
+        .update(profiles)
+        .set({
+            subscriptionTier: status === "active" ? "PRO" : "FREE",
+        })
+        .where(eq(profiles.stripeCustomerId, customerId));
+}
 
 export async function POST(request: NextRequest) {
     const body = await request.text();
-    const signature = request.headers.get("stripe-signature");
+    const sig = request.headers.get("stripe-signature");
 
-    if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-        return new NextResponse("Webhook Error", { status: 400 });
+    if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
+        return new NextResponse("Missing signature or webhook secret", { status: 400 });
     }
 
-    let event;
     try {
-        event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-        return new NextResponse("Webhook Error", { status: 400 });
-    }
+        const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET) as Stripe.Event;
 
-    const { type, data } = event;
-
-    try {
-        switch (type) {
+        switch (event.type) {
             case "customer.subscription.created":
             case "customer.subscription.updated":
             case "customer.subscription.deleted": {
-                const subscription = data.object;
-                await handleSubscriptionChange(subscription.id, subscription.customer as string, subscription.status);
+                const subscription = event.data.object as Stripe.Subscription;
+                if (typeof subscription.customer !== "string") {
+                    throw new Error("Invalid customer ID in subscription");
+                }
+                await handleSubscriptionChange(subscription.customer, subscription.status);
                 break;
             }
             case "checkout.session.completed": {
-                const session = data.object;
-                if (session.mode === "subscription") {
-                    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-                    await handleSubscriptionChange(
-                        subscription.id,
-                        subscription.customer as string,
-                        subscription.status
-                    );
+                const session = event.data.object as Stripe.Checkout.Session;
+                if (!session.subscription || typeof session.customer !== "string") {
+                    throw new Error("Missing subscription or invalid customer ID in session");
                 }
+                await handleSubscriptionChange(session.customer, "active");
                 break;
             }
         }
 
         return new NextResponse(null, { status: 200 });
-    } catch (error) {
-        console.error("Webhook error:", error);
-        return new NextResponse("Webhook Error", { status: 400 });
+    } catch (err) {
+        console.error("Error processing webhook:", err);
+        return new NextResponse("Webhook error: " + (err instanceof Error ? err.message : "Unknown error"), {
+            status: 400,
+        });
     }
 }

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { stripe } from "@/services/stripe/client";
+import { stripe } from "@/lib/infrastructure/stripe/client";
 import { SUBSCRIPTION_TIERS } from "@/lib/config/pricing";
 import { db } from "@/lib/core/db";
-import { users } from "@/lib/core/db/schema";
+import { profiles } from "@/lib/core/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: NextRequest) {
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Get or create Stripe customer
-        const dbUser = await db.query.users.findFirst({
-            where: eq(users.id, user.id),
+        const dbUser = await db.query.profiles.findFirst({
+            where: eq(profiles.id, user.id),
         });
 
         let stripeCustomerId = dbUser?.stripeCustomerId;
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
                 },
             });
 
-            await db.update(users).set({ stripeCustomerId: customer.id }).where(eq(users.id, user.id));
+            await db.update(profiles).set({ stripeCustomerId: customer.id }).where(eq(profiles.id, user.id));
 
             stripeCustomerId = customer.id;
         }

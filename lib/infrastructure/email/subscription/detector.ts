@@ -1,5 +1,5 @@
 import { load } from "cheerio";
-import { EmailSubscription } from "@/lib/schemas/email";
+import type { EmailSubscription } from "@/lib/features/email/schemas/subscription";
 
 export function detectSubscriptionEmails(
     emailContent: string,
@@ -16,6 +16,11 @@ export function detectSubscriptionEmails(
         "update preferences",
         "email preferences",
         "manage subscriptions",
+        "notification",
+        "social",
+        "network",
+        "promotion",
+        "account",
     ];
 
     // Find unsubscribe link
@@ -29,29 +34,23 @@ export function detectSubscriptionEmails(
         sender: headers.from,
         domain: extractDomain(headers.from),
         type,
-        unsubscribeMethod: unsubscribeLink ? "link" : unsubscribeEmail ? "email" : "unknown",
-        unsubscribeData: {
-            link: unsubscribeLink,
-            email: unsubscribeEmail,
-        },
+        unsubscribeLink,
+        unsubscribeEmail,
         status: "active",
+        lastEmailAt: new Date(),
     };
 }
 
 function findUnsubscribeLink($: any): string | undefined {
-    // Look for common unsubscribe link patterns
-    const unsubscribeLinks = $("a").filter((_: any, el: any) => {
-        const text = $(el).text().toLowerCase();
-        return text.includes("unsubscribe") || text.includes("subscription") || text.includes("opt out");
-    });
-
+    const unsubscribeLinks = $(
+        'a[href*="unsubscribe"], a[href*="opt-out"], a:contains("unsubscribe"), a:contains("opt out")'
+    );
     return unsubscribeLinks.first().attr("href");
 }
 
 function extractUnsubscribeEmail(listUnsubscribe?: string): string | undefined {
     if (!listUnsubscribe) return undefined;
-
-    const emailMatch = listUnsubscribe.match(/<mailto:([^>]+)>/);
+    const emailMatch = listUnsubscribe.match(/mailto:([^\s<>]+@[^\s<>]+)/);
     return emailMatch ? emailMatch[1] : undefined;
 }
 
@@ -61,21 +60,23 @@ function determineSubscriptionType(
     keywords: string[]
 ): EmailSubscription["type"] {
     const contentLower = content.toLowerCase();
+    const subjectLower = (headers.subject || "").toLowerCase();
 
-    // Check if any newsletter keywords are present
-    const hasNewsletterIndicators = keywords.some((keyword) => contentLower.includes(keyword.toLowerCase()));
+    const hasKeyword = (type: string) =>
+        keywords.filter((k) => k.includes(type)).some((k) => contentLower.includes(k) || subjectLower.includes(k));
 
-    if (hasNewsletterIndicators) {
-        if (contentLower.includes("marketing")) return "marketing";
-        if (contentLower.includes("update") || contentLower.includes("notification")) return "updates";
-        if (contentLower.includes("social") || headers.from.includes("social")) return "social";
-        return "newsletter";
-    }
+    if (hasKeyword("newsletter")) return "newsletter";
+    if (hasKeyword("marketing") || hasKeyword("promotion")) return "marketing";
+    if (hasKeyword("notification") || hasKeyword("account")) return "transactional";
+    if (hasKeyword("social") || hasKeyword("network")) return "social";
 
     return "other";
 }
 
 function extractDomain(email: string): string {
     const match = email.match(/@([^>]+)>/);
-    return match ? match[1] : email.split("@")[1];
+    if (match) return match[1];
+
+    const parts = email.split("@");
+    return parts.length > 1 ? parts[1] : email;
 }

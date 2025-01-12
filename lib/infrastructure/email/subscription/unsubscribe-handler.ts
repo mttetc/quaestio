@@ -1,120 +1,47 @@
-import { EmailSubscription, UnsubscribeResult } from "@/lib/schemas/email";
-import { load } from "cheerio";
+import type { EmailSubscription, UnsubscribeResult } from "@/lib/features/email/schemas/subscription";
+import { db } from "@/lib/core/db";
+import { emailSubscriptions } from "@/lib/core/db/schema";
+import { eq } from "drizzle-orm";
 
-export async function unsubscribe(subscription: EmailSubscription): Promise<UnsubscribeResult> {
+export async function handleUnsubscribe(subscription: EmailSubscription): Promise<UnsubscribeResult> {
     try {
-        switch (subscription.unsubscribeMethod) {
-            case "link":
-                return await handleLinkUnsubscribe(subscription);
-            case "email":
-                return await handleEmailUnsubscribe(subscription);
-            case "form":
-                return await handleFormUnsubscribe(subscription);
-            default:
-                return {
-                    success: false,
-                    status: "failed",
-                    error: "Unknown unsubscribe method",
-                    message: "Could not determine how to unsubscribe",
-                };
-        }
-    } catch (error) {
-        return {
-            success: false,
-            status: "failed",
-            error: error instanceof Error ? error.message : "Unknown error",
-            message: "Failed to process unsubscribe request",
-        };
-    }
-}
-
-async function handleLinkUnsubscribe(subscription: EmailSubscription): Promise<UnsubscribeResult> {
-    if (!subscription.unsubscribeData?.link) {
-        return {
-            success: false,
-            status: "failed",
-            error: "No unsubscribe link found",
-            message: "Missing unsubscribe link",
-        };
-    }
-
-    try {
-        const response = await fetch(subscription.unsubscribeData.link);
-
-        if (!response.ok) {
-            return {
-                success: false,
-                status: "failed",
-                error: `HTTP error ${response.status}`,
-                message: "Failed to access unsubscribe page",
-            };
+        if (subscription.unsubscribeLink) {
+            // Handle link-based unsubscribe
+            const response = await fetch(subscription.unsubscribeLink);
+            if (!response.ok) {
+                throw new Error(`Failed to unsubscribe: ${response.statusText}`);
+            }
+        } else if (subscription.unsubscribeEmail) {
+            // Handle email-based unsubscribe
+            // TODO: Implement email sending logic
+            throw new Error("Email-based unsubscribe not implemented yet");
+        } else {
+            throw new Error("No unsubscribe method available");
         }
 
-        const html = await response.text();
-        const $ = load(html);
+        // Update subscription status in database
+        const [updated] = await db
+            .update(emailSubscriptions)
+            .set({ status: "unsubscribed", updatedAt: new Date() })
+            .where(eq(emailSubscriptions.id, subscription.id))
+            .returning();
 
-        const success = checkUnsubscribeSuccess($);
+        if (!updated) throw new Error("Failed to update subscription status");
 
         return {
-            success,
-            status: success ? "completed" : "pending",
-            message: success ? "Successfully unsubscribed" : "Unsubscribe request submitted",
+            success: true,
+            message: "Successfully unsubscribed",
+            status: "completed" as const,
+            error: undefined,
+            subscription: { ...subscription, status: "unsubscribed" },
         };
     } catch (error) {
         return {
             success: false,
-            status: "failed",
-            error: error instanceof Error ? error.message : "Network error",
-            message: "Failed to access unsubscribe page",
+            message: error instanceof Error ? error.message : "Failed to unsubscribe",
+            status: "failed" as const,
+            error: error instanceof Error ? error.message : undefined,
+            subscription: null,
         };
     }
-}
-
-async function handleEmailUnsubscribe(subscription: EmailSubscription): Promise<UnsubscribeResult> {
-    if (!subscription.unsubscribeData?.email) {
-        return {
-            success: false,
-            status: "failed",
-            error: "No unsubscribe email found",
-            message: "Missing unsubscribe email address",
-        };
-    }
-
-    // In a real implementation, this would send an email
-    return {
-        success: true,
-        status: "pending",
-        message: "Unsubscribe email sent",
-    };
-}
-
-async function handleFormUnsubscribe(subscription: EmailSubscription): Promise<UnsubscribeResult> {
-    if (!subscription.unsubscribeData?.formUrl) {
-        return {
-            success: false,
-            status: "failed",
-            error: "No unsubscribe form URL found",
-            message: "Missing unsubscribe form",
-        };
-    }
-
-    // In a real implementation, this would submit the form
-    return {
-        success: true,
-        status: "pending",
-        message: "Unsubscribe form submitted",
-    };
-}
-
-function checkUnsubscribeSuccess($: any): boolean {
-    const successIndicators = [
-        "successfully unsubscribed",
-        "unsubscribe successful",
-        "you have been unsubscribed",
-        "subscription cancelled",
-        "email removed",
-    ];
-
-    const pageText = $("body").text().toLowerCase();
-    return successIndicators.some((indicator) => pageText.includes(indicator));
 }

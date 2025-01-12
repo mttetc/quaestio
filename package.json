@@ -42,6 +42,7 @@
         "date-fns": "^3.3.1",
         "dotenv": "^16.4.1",
         "drizzle-orm": "^0.29.3",
+        "drizzle-zod": "^0.6.1",
         "framer-motion": "^11.0.3",
         "imapflow": "^1.0.171",
         "langchain": "^0.3.8",

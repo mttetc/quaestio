@@ -1,76 +1,57 @@
 "use client";
 
-import type { QAFilter } from "@/lib/schemas/qa";
-import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import { useQAs } from "@/services/qa/hooks/use-qa";
+import type { QAFilter } from "@/lib/features/qa/schemas/qa";
+import { useReadQAs } from "@/lib/features/qa/hooks/use-read-qas";
+import { Checkbox } from "@/components/ui/checkbox";
+import { qaEntries } from "@/lib/core/db/schema";
+import type { InferSelectModel } from "drizzle-orm";
 
 interface QAListProps {
     filter?: QAFilter;
-    className?: string;
     selectable?: boolean;
-    name?: string;
     selectedIds?: string[];
+    onSelect?: (id: string) => void;
 }
 
-export function QAList({ filter, className, selectable, name, selectedIds }: QAListProps) {
-    const { data: qas, isLoading, error } = useQAs(filter);
+export function QAList({ filter, selectable, selectedIds = [], onSelect }: QAListProps) {
+    const { data: qas, isLoading } = useReadQAs(filter);
 
     if (isLoading) {
         return (
-            <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                Failed to load Q&As
+            <div className="flex justify-center p-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
             </div>
         );
     }
 
     if (!qas?.length) {
-        return (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No Q&As found</div>
-        );
+        return <div className="text-center text-muted-foreground">No Q&As found</div>;
     }
 
     return (
-        <div className={className}>
+        <div className="space-y-4">
             {qas.map((qa) => (
-                <Card key={qa.id} className="mb-4">
-                    <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                            {selectable && (
-                                <Checkbox name={name} value={qa.id} checked={selectedIds?.includes(qa.id)} />
-                            )}
-                            <div className="flex-1">
-                                <div className="mb-2">
-                                    <h3 className="text-lg font-semibold">{qa.question}</h3>
-                                    <p className="text-sm text-muted-foreground">{qa.answer}</p>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {qa.tags?.map((tag) => (
-                                        <span
-                                            key={tag}
-                                            className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary"
-                                        >
+                <Card key={qa.id} className="p-4">
+                    <div className="flex items-start gap-4">
+                        {selectable && (
+                            <Checkbox checked={selectedIds.includes(qa.id)} onCheckedChange={() => onSelect?.(qa.id)} />
+                        )}
+                        <div className="flex-1">
+                            <h3 className="font-semibold">{qa.question}</h3>
+                            <p className="mt-2 text-muted-foreground">{qa.answer}</p>
+                            {qa.tags && qa.tags.length > 0 && (
+                                <div className="mt-2 flex gap-2">
+                                    {qa.tags.map((tag) => (
+                                        <span key={tag} className="rounded-full bg-muted px-2 py-1 text-xs">
                                             {tag}
                                         </span>
                                     ))}
                                 </div>
-                                <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-                                    <span>Confidence: {qa.confidence}%</span>
-                                    <span>Importance: {qa.importance}</span>
-                                    {qa.responseTimeHours && <span>Response Time: {qa.responseTimeHours}h</span>}
-                                </div>
-                            </div>
+                            )}
                         </div>
-                    </CardContent>
+                    </div>
                 </Card>
             ))}
         </div>

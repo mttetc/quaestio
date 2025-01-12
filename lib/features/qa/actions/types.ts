@@ -1,18 +1,19 @@
-export interface QAExtractResult {
-    success: boolean;
-    error?: string;
-    processedEmails: number;
-    extractedQAs: number;
-}
+import { z } from "zod";
 
-export interface ExtractFormState {
-    status?: {
-        count?: number;
-        error?: string;
-        failedEmails?: number;
-    };
-    dateRange?: {
-        from: Date;
-        to: Date;
-    };
-} 
+export const extractFormStateSchema = z.object({
+    status: z
+        .object({
+            count: z.number().optional(),
+            error: z.string().optional(),
+            failedEmails: z.number().optional(),
+        })
+        .optional(),
+    dateRange: z
+        .object({
+            from: z.date(),
+            to: z.date(),
+        })
+        .optional(),
+});
+
+export type ExtractFormState = z.infer<typeof extractFormStateSchema>;

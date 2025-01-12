@@ -1,36 +1,46 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { linkEmailAccount } from "@/lib/core/auth/email-linking";
 import { useToast } from "@/components/ui/use-toast";
 import { EmailSetupCore } from "@/components/email/email-setup-core";
-import { createClient } from "@/services/supabase/client";
+import { addEmailAccount } from "@/lib/features/email/actions/add-account";
+import { createClient, getURL } from "@/lib/infrastructure/supabase/client";
 
 export function OnboardingWizard() {
     const router = useRouter();
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
-    const [user, setUser] = useState<{ id: string } | null>(null);
+    const [user, setUser] = useState<any>(null);
     const [linkingStatus, setLinkingStatus] = useState<{
         success?: boolean;
         error?: string;
     }>({});
 
-    // Get user on mount
-    startTransition(async () => {
-        const supabase = createClient();
-        const {
-            data: { user },
-        } = await supabase.auth.getUser();
-        setUser(user);
+    useEffect(() => {
+        // Get user on mount
+        startTransition(async () => {
+            const supabase = createClient();
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+            setUser(user);
+        });
+    }, []);
 
-        if (!user) {
-            router.push("/login");
+    // Add error handling for auth redirects
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        if (params.get("error_code")?.startsWith("4")) {
+            toast({
+                title: "Authentication Error",
+                description: params.get("error_description"),
+                variant: "destructive",
+            });
         }
-    });
+    }, [toast]);
 
     if (isPending) {
         return (
@@ -46,7 +56,7 @@ export function OnboardingWizard() {
 
     const handleSubmit = async (email: string, appPassword: string) => {
         try {
-            await linkEmailAccount(user.id, email, "gmail", appPassword);
+            await addEmailAccount(user.id, email, appPassword, "gmail");
             setLinkingStatus({ success: true });
             toast({
                 title: "Email account linked successfully",

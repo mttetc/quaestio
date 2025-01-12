@@ -98,7 +98,18 @@ export function DocumentationBuilder() {
                         <TabsTrigger value="preview">Preview</TabsTrigger>
                     </TabsList>
                     <TabsContent value="source">
-                        <QAList selectable name="selectedQAs" selectedIds={state?.selectedQAs} />
+                        <QAList
+                            selectable
+                            selectedIds={state?.selectedQAs}
+                            onSelect={(id) => {
+                                const formData = new FormData();
+                                const selectedQAs = state?.selectedQAs?.includes(id)
+                                    ? state.selectedQAs.filter((qaId) => qaId !== id)
+                                    : [...(state?.selectedQAs || []), id];
+                                selectedQAs.forEach((qaId) => formData.append("selectedQAs", qaId));
+                                formAction(formData);
+                            }}
+                        />
                         <div className="mt-4">
                             <GenerateButton />
                         </div>

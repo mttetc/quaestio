@@ -8,26 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail, Loader2, ExternalLink } from "lucide-react";
-import { addEmailAccount } from "@/lib/features/email/actions/email";
-import { useUser } from "@/services/auth/hooks/use-user";
+import { connectEmail } from "@/lib/features/email/actions/connect-email";
+import { useReadUser } from "@/lib/features/auth/hooks/use-read-user";
+import type { ConnectEmailResult } from "@/lib/features/email/actions/connect-email";
 
-interface EmailFormState {
-    error?: string;
-    success?: boolean;
-}
-
-async function emailAction(prevState: any, formData: FormData) {
-    try {
-        const email = formData.get("email") as string;
-        const appPassword = formData.get("appPassword") as string;
-        const userId = formData.get("userId") as string;
-
-        await addEmailAccount(userId, email, appPassword, "gmail");
-        return { success: true };
-    } catch (error) {
-        return { error: error instanceof Error ? error.message : "Failed to connect email account" };
-    }
-}
+const initialState: ConnectEmailResult = {};
 
 function ConnectButton() {
     const { pending } = useFormStatus();
@@ -49,12 +34,10 @@ function ConnectButton() {
     );
 }
 
-const initialState: EmailFormState = {};
-
 export function EmailLinkForm() {
     const { toast } = useToast();
-    const { data: user } = useUser();
-    const [state, formAction] = useFormState(emailAction, initialState);
+    const { data: user, isLoading } = useReadUser();
+    const [state, formAction] = useFormState(connectEmail, initialState);
 
     React.useEffect(() => {
         if (state.error) {
@@ -70,6 +53,8 @@ export function EmailLinkForm() {
             });
         }
     }, [state, toast]);
+
+    if (isLoading) return <div>Loading user...</div>;
 
     if (!user) return null;
 

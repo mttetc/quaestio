@@ -1,11 +1,11 @@
 "use client";
 
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
-import { useUser } from "@/services/auth/hooks/use-user";
+import { useReadUser } from "@/lib/features/auth/hooks/use-read-user";
 import { Loader2 } from "lucide-react";
 
 export default function OnboardingPage() {
-    const { isLoading } = useUser();
+    const { isLoading } = useReadUser();
 
     if (isLoading) {
         return (

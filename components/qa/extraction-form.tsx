@@ -7,35 +7,82 @@ import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { useToast } from "@/components/ui/use-toast";
 import { Mail } from "lucide-react";
 import { ExtractButton } from "@/components/qa/extract-button";
-import { extractAction } from "@/lib/features/qa/actions/extract";
-import { ExtractFormState } from "@/lib/features/qa/actions/types";
-import { useEmailAccounts } from "@/services/email/hooks";
-import type { EmailAccount } from "@/services/email/api";
+import { extractQA } from "@/lib/features/qa/actions/extract";
+import { useReadEmailAccounts } from "@/lib/features/email/hooks/use-read-accounts";
+import { emailAccounts } from "@/lib/core/db/schema";
+import type { InferSelectModel } from "drizzle-orm";
+import { useEffect } from "react";
 
-const extractInitialState: ExtractFormState = { status: undefined };
+type EmailAccount = InferSelectModel<typeof emailAccounts>;
+
+type ExtractFormSuccess = {
+    type: "success";
+    status: {
+        count: number;
+    };
+};
+
+type ExtractFormError = {
+    type: "error";
+    status: {
+        error: string;
+    };
+};
+
+type ExtractFormInitial = {
+    type: "initial";
+    status: undefined;
+};
+
+type ExtractFormState = ExtractFormSuccess | ExtractFormError | ExtractFormInitial;
+
+const extractInitialState: ExtractFormState = { type: "initial", status: undefined };
+
+const extractAction = async (state: ExtractFormState, formData: FormData): Promise<ExtractFormState> => {
+    try {
+        const emailId = formData.get("emailId") as string;
+        const dateRange = formData.get("dateRange") as string;
+        if (!emailId || !dateRange) {
+            return {
+                type: "error",
+                status: { error: "Email account and date range are required" },
+            };
+        }
+
+        const qa = await extractQA(emailId, "", "", dateRange);
+        return {
+            type: "success",
+            status: { count: 1 },
+        };
+    } catch (error) {
+        return {
+            type: "error",
+            status: {
+                error: error instanceof Error ? error.message : "Failed to extract Q&A",
+            },
+        };
+    }
+};
 
 export function ExtractionForm() {
     const { toast } = useToast();
     const [state, dispatch] = useFormState(extractAction, extractInitialState);
-    const { data: emailAccounts, isLoading } = useEmailAccounts();
+    const { data: emailAccounts, isLoading } = useReadEmailAccounts();
 
-    // Handle notifications based on state changes
-    if (state.status?.error) {
-        toast({
-            title: "Error",
-            description: state.status.error,
-            variant: "destructive",
-        });
-    } else if (state.status?.count) {
-        const message = state.status.failedEmails
-            ? `Extracted ${state.status.count} Q&As. ${state.status.failedEmails} emails failed processing.`
-            : `Extracted ${state.status.count} Q&As from your emails`;
-        
-        toast({
-            title: "Success",
-            description: message,
-        });
-    }
+    useEffect(() => {
+        if (state.type === "error") {
+            toast({
+                title: "Error",
+                description: state.status.error,
+                variant: "destructive",
+            });
+        } else if (state.type === "success") {
+            toast({
+                title: "Success",
+                description: `Extracted ${state.status.count} Q&As from your emails`,
+            });
+        }
+    }, [toast, state]);
 
     return (
         <Card>
@@ -46,7 +93,9 @@ export function ExtractionForm() {
             <CardContent className="space-y-6">
                 <form action={dispatch} className="space-y-6">
                     <div className="space-y-2">
-                        <label htmlFor="emailId" className="text-sm font-medium">Email Account</label>
+                        <label htmlFor="emailId" className="text-sm font-medium">
+                            Email Account
+                        </label>
                         <Select name="emailId" disabled={isLoading}>
                             <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select an email account" />
@@ -65,12 +114,10 @@ export function ExtractionForm() {
                     </div>
 
                     <div className="space-y-2">
-                        <label htmlFor="dateRange" className="text-sm font-medium">Date Range</label>
-                        <DatePickerWithRange
-                            id="dateRange"
-                            name="dateRange"
-                            date={state.dateRange}
-                        />
+                        <label htmlFor="dateRange" className="text-sm font-medium">
+                            Date Range
+                        </label>
+                        <DatePickerWithRange id="dateRange" name="dateRange" />
                     </div>
 
                     <ExtractButton />

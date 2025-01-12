@@ -1,43 +1,36 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLinkedEmails } from "@/services/email/hooks/use-linked-emails";
+import { useReadEmailAccounts } from "@/lib/features/email/hooks/use-read-accounts";
+import { emailAccounts } from "@/lib/core/db/schema";
+import type { InferSelectModel } from "drizzle-orm";
+
+type EmailAccount = InferSelectModel<typeof emailAccounts>;
 
 export default function SettingsPage() {
-  const { data: linkedEmails = [], isLoading } = useLinkedEmails();
+    const { data: linkedEmails = [], isLoading } = useReadEmailAccounts();
 
-  if (isLoading) {
-    return <div>Loading settings...</div>;
-  }
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Linked Email Accounts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {linkedEmails.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No email accounts linked yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {linkedEmails.map((email) => (
-                <div key={email.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{email.email}</p>
-                    <p className="text-xs text-muted-foreground">{email.provider}</p>
-                  </div>
-                  {email.lastSynced && (
-                    <p className="text-xs text-muted-foreground">
-                      Last synced: {new Date(email.lastSynced).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-              ))}
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
+                <p className="text-muted-foreground">Manage your account settings and email connections</p>
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+
+            <div className="space-y-4">
+                <h3 className="text-lg font-medium">Connected Email Accounts</h3>
+                <div className="space-y-2">
+                    {linkedEmails.map((email: EmailAccount) => (
+                        <div key={email.id} className="flex items-center justify-between">
+                            <span>{email.email}</span>
+                            <span className="text-sm text-muted-foreground">{email.provider}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 }

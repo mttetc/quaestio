@@ -1,39 +1,56 @@
 "use server";
 
-import { getCurrentUser } from "@/lib/core/auth";
-import { createQA } from "./crud";
-import { ExtractFormState } from "./types";
-import { extractQAsFromEmails } from "@/services/email/extraction";
+import { z } from "zod";
+import { createQA } from "./create-qa";
+import { qaEntries, type QAMetadata } from "@/lib/core/db/schema";
+import type { InferSelectModel } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
 
-export async function extractAction(prevState: ExtractFormState, formData: FormData): Promise<ExtractFormState> {
-    try {
-        const user = await getCurrentUser();
-        const emailId = formData.get("emailId") as string;
-        const dateRange = formData.get("dateRange") as string;
-        const { from, to } = JSON.parse(dateRange);
+const qaDataSchema = z.object({
+    emailId: z.string().nullable(),
+    question: z.string(),
+    answer: z.string(),
+    importance: z.enum(["low", "medium", "high"]),
+    confidence: z.number(),
+    tags: z.array(z.string()).nullable(),
+    category: z.string().nullable(),
+    metadata: z.custom<QAMetadata>().nullable(),
+    responseTimeHours: z.number().nullable(),
+});
 
-        const qas = await extractQAsFromEmails(emailId, new Date(from), new Date(to));
-        let failedCount = 0;
+export type QAData = z.infer<typeof qaDataSchema>;
 
-        for (const qa of qas) {
-            try {
-                await createQA(qa);
-            } catch (error) {
-                failedCount++;
-            }
-        }
+export async function extractQA(
+    emailId: string,
+    question: string,
+    answer: string,
+    dateRange: string,
+    metadata?: Omit<QAMetadata, "date"> & { date?: never }
+): Promise<InferSelectModel<typeof qaEntries>> {
+    const { from, to } = JSON.parse(dateRange);
+    const responseTimeHours = Math.round((new Date(to).getTime() - new Date(from).getTime()) / (1000 * 60 * 60));
 
-        return {
-            status: {
-                count: qas.length,
-                failedEmails: failedCount || undefined,
-            },
-        };
-    } catch (error) {
-        return {
-            status: {
-                error: error instanceof Error ? error.message : "Failed to extract Q&As",
-            },
-        };
+    const qaData = {
+        emailId,
+        question,
+        answer,
+        importance: "medium" as const,
+        confidence: 100,
+        tags: null,
+        category: null,
+        responseTimeHours,
+        metadata: metadata
+            ? {
+                  date: new Date(from),
+                  ...metadata,
+              }
+            : null,
+    } satisfies QAData;
+
+    const result = qaDataSchema.safeParse(qaData);
+    if (!result.success) {
+        throw new Error(`Invalid QA data: ${result.error.message}`);
     }
+
+    return createQA(result.data);
 }

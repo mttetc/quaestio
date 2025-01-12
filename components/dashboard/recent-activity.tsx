@@ -1,55 +1,43 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import { MessageSquare } from "lucide-react";
-import Link from "next/link";
-import { useQAs } from "@/services/qa/hooks/use-qa";
+import { Card } from "@/components/ui/card";
+import { useReadQAs } from "@/lib/features/qa/hooks/use-read-qas";
+import { Loader2 } from "lucide-react";
 
 export function RecentActivity() {
-    const { data: qas, isLoading } = useQAs({ limit: 5 });
+    const { data: qas, isLoading } = useReadQAs({ limit: 5 });
 
     if (isLoading) {
         return (
-            <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                    <div key={i} className="animate-pulse flex items-start space-x-3">
-                        <div className="h-6 w-6 rounded bg-gray-200" />
-                        <div className="space-y-2 flex-1">
-                            <div className="h-4 bg-gray-200 rounded w-3/4" />
-                            <div className="h-3 bg-gray-200 rounded w-1/4" />
-                        </div>
-                    </div>
-                ))}
+            <div className="flex items-center justify-center p-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
         );
     }
 
     if (!qas?.length) {
-        return (
-            <div className="text-center text-muted-foreground py-6">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No activity in the last 30 days</p>
-            </div>
-        );
+        return <Card className="p-8 text-center text-muted-foreground">No recent activity</Card>;
     }
 
     return (
         <div className="space-y-4">
-            {qas.map((qa) => (
-                <Link
-                    key={qa.id}
-                    href={`/dashboard/qa/${qa.id}`}
-                    className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors"
-                >
-                    <MessageSquare className="h-5 w-5 mt-0.5 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm font-medium line-clamp-1">{qa.question}</p>
-                        <p className="text-xs text-muted-foreground">
-                            {qa.metadata?.date && formatDistanceToNow(new Date(qa.metadata.date), { addSuffix: true })}
-                        </p>
-                    </div>
-                </Link>
-            ))}
+            {qas.map((qa) => {
+                return (
+                    <Card key={qa.id} className="p-4">
+                        <h3 className="font-semibold">{qa.question}</h3>
+                        <p className="mt-2 text-muted-foreground">{qa.answer}</p>
+                        {qa.tags && qa.tags.length > 0 && (
+                            <div className="mt-2 flex gap-2">
+                                {qa.tags.map((tag) => (
+                                    <span key={tag} className="rounded-full bg-muted px-2 py-1 text-xs">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </Card>
+                );
+            })}
         </div>
     );
 }

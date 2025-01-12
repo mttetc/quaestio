@@ -8,7 +8,7 @@ import { Globe, Loader2 } from "lucide-react";
 import { ContentGapsDisplay } from "@/components/analysis/content-gaps-display";
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
-import { analyzeWebsite, type WebsiteAnalysisState } from "@/lib/features/analysis/actions/website";
+import { analyzeWebsite, WebsiteAnalysisState } from "@/lib/features/analytics/actions/website-analysis";
 
 function AnalyzeButton() {
     const { pending } = useFormStatus();

@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createClient } from "@/services/supabase/client";
+import { createClient } from "@/lib/infrastructure/supabase/client";
 
 interface HeaderProps {
     children?: React.ReactNode;

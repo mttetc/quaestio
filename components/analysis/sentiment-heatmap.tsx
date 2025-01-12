@@ -1,19 +1,19 @@
 "use client";
 
 import type { DateRange } from "react-day-picker";
-import type { DateRange as ApiDateRange } from "@/services/analytics/metrics";
+import { useReadSentimentHeatmap } from "@/lib/features/analytics/hooks/use-sentiment";
 import { generateHeatmapCellKey } from "@/lib/utils/key-generation";
 import { cn } from "@/lib/utils";
-import { useSentimentHeatmap, type SentimentData } from "@/services/analytics/hooks/use-sentiment";
+import { SentimentHeatmapData } from "@/lib/features/analytics/schemas/sentiment";
 
 interface SentimentHeatmapProps {
     dateRange: DateRange;
 }
 
-function getHeatmapColor(sentiment: SentimentData | undefined): string {
-    if (!sentiment) return "bg-gray-100";
+function getHeatmapColor(data: SentimentHeatmapData["sentiment"][0] | undefined): string {
+    if (!data) return "bg-gray-100";
 
-    switch (sentiment.sentiment) {
+    switch (data.sentiment) {
         case "positive":
             return "bg-green-500";
         case "negative":
@@ -24,7 +24,7 @@ function getHeatmapColor(sentiment: SentimentData | undefined): string {
 }
 
 export function SentimentHeatmap({ dateRange }: SentimentHeatmapProps) {
-    const { data: sentiments, isLoading } = useSentimentHeatmap(dateRange);
+    const { data: sentiments, isLoading } = useReadSentimentHeatmap(dateRange);
 
     if (isLoading) {
         return <div>Loading sentiment data...</div>;

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { SentimentHeatmap } from "@/components/analysis/sentiment-heatmap";
-import { QuestionChart } from "@/components/analytics/question-chart";
-import { ResponseTimeCard } from "@/components/analytics/response-time-card";
-import { VolumeByTagCard } from "@/components/analytics/volume-by-tag-card";
+import { QuestionChart } from "@/lib/features/analytics/components/questions/chart";
+import { ResponseTimeCard } from "@/lib/features/analytics/components/metrics/response-time-card";
+import { VolumeByTagCard } from "@/lib/features/analytics/components/metrics/volume-by-tag-card";
 import { DateRange } from "react-day-picker";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
 import { PageHeader } from "@/components/ui/page-header";

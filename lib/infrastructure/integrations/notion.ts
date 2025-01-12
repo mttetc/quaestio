@@ -1,8 +1,9 @@
+import { qaEntries } from "@/lib/core/db/schema";
 import { Client } from "@notionhq/client";
 import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
-import { QA } from "@/lib/schemas/qa";
+import { InferSelectModel } from "drizzle-orm";
 
-export async function syncToNotion(apiKey: string, databaseId: string, data: QA[]) {
+export async function syncToNotion(apiKey: string, databaseId: string, data: InferSelectModel<typeof qaEntries>[]) {
     const notion = new Client({ auth: apiKey });
 
     const pages = data.map((qa) => {
@@ -23,7 +24,7 @@ export async function syncToNotion(apiKey: string, databaseId: string, data: QA[
                 },
                 Tags: {
                     type: "multi_select",
-                    multi_select: qa.tags.map((tag) => ({ name: tag })),
+                    multi_select: (qa.tags ?? []).map((tag) => ({ name: tag })),
                 },
                 Confidence: {
                     type: "number",
@@ -40,9 +41,33 @@ export async function syncToNotion(apiKey: string, databaseId: string, data: QA[
 
     // Create pages in batches to respect API limits
     const batchSize = 10;
+    const results: { success: boolean; error?: string }[] = [];
+
     for (let i = 0; i < pages.length; i += batchSize) {
         const batch = pages.slice(i, i + batchSize);
-        await Promise.all(batch.map((page) => notion.pages.create(page)));
+        const batchResults = await Promise.allSettled(batch.map((page) => notion.pages.create(page)));
+
+        results.push(
+            ...batchResults.map((result) => {
+                if (result.status === "rejected") {
+                    console.error("Failed to create Notion page:", result.reason);
+                    return {
+                        success: false,
+                        error: result.reason instanceof Error ? result.reason.message : "Failed to create page",
+                    };
+                }
+                return { success: true };
+            })
+        );
+
+        // Rate limiting pause between batches
         await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+
+    const failedCount = results.filter((r) => !r.success).length;
+    if (failedCount > 0) {
+        console.error(`Failed to sync ${failedCount} out of ${pages.length} pages to Notion`);
+    }
+
+    return results;
 }
