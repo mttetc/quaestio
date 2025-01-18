@@ -2,18 +2,23 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useReadQuestionList } from "@/lib/features/analytics/hooks/use-questions";
-import type { DateRange } from "react-day-picker";
+import type { DateRange } from "@/components/ui/calendar";
+import { Suspense } from "react";
 
 interface QuestionListProps {
     dateRange: DateRange;
 }
 
 export function QuestionList({ dateRange }: QuestionListProps) {
-    const { data, isLoading, error } = useReadQuestionList(dateRange);
+    return (
+        <Suspense fallback={<div>Loading questions...</div>}>
+            <QuestionListContent dateRange={dateRange} />
+        </Suspense>
+    );
+}
 
-    if (isLoading) {
-        return <div>Loading questions...</div>;
-    }
+function QuestionListContent({ dateRange }: QuestionListProps) {
+    const { data } = useReadQuestionList(dateRange);
 
     if (!data?.length) {
         return null;

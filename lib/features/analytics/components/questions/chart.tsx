@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart } from "@/components/ui/line-chart";
 import { useReadQuestionChart } from "@/lib/features/analytics/hooks/use-questions";
-import type { DateRange } from "react-day-picker";
+import type { DateRange } from "@/components/ui/calendar";
 
 interface QuestionChartProps {
     dateRange: DateRange;

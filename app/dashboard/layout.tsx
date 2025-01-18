@@ -1,46 +1,46 @@
-"use client";
-
-import { Loader2 } from "lucide-react";
 import { Sidebar } from "@/components/ui/aceternity/sidebar";
 import { Header } from "@/components/dashboard/header";
-import { useRouter } from "next/navigation";
-import { useReadEmailAccounts } from "@/lib/features/email/hooks/use-read-accounts";
-import { useReadUser, useUpdateUser } from "@/lib/features/auth/hooks/use-read-user";
-import { useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { getQueryClient } from "@/lib/get-query-client";
+import { readUser } from "@/lib/features/auth/queries/read-user";
+import { readEmailAccounts } from "@/lib/features/email/queries/readEmailAccounts";
+import { readTokenBalance } from "@/lib/features/tokens/queries/tokens";
+import { redirect } from "next/navigation";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
-    const { toast } = useToast();
-    const { data: user } = useReadUser();
-    const updateUser = useUpdateUser();
-    const { data: emailAccounts } = useReadEmailAccounts();
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const queryClient = getQueryClient();
 
-    useEffect(() => {
-        if (!emailAccounts?.length || user?.hasCompletedOnboarding || updateUser.isError) return;
-
-        updateUser.mutate(
-            { hasCompletedOnboarding: true },
-            {
-                onSuccess: () => {
-                    toast({
-                        title: "Onboarding completed",
-                        description: "You can now start managing your email subscriptions.",
-                    });
-                },
-            }
-        );
-    }, [emailAccounts?.length, user?.hasCompletedOnboarding, updateUser]);
+    // Prefetch user data
+    const user = await queryClient.fetchQuery({
+        queryKey: ["user"],
+        queryFn: readUser,
+    });
 
     if (!user) {
-        router.push("/login");
-        return null;
+        redirect("/login");
     }
 
-    if (!user.hasCompletedOnboarding && !emailAccounts?.length) {
-        router.push("/onboarding");
-        return null;
-    }
+    // Prefetch email accounts
+    await queryClient.prefetchQuery({
+        queryKey: ["emailAccounts"],
+        queryFn: readEmailAccounts,
+    });
 
-    return <div className="flex h-screen">{children}</div>;
+    // Prefetch token balance
+    await queryClient.prefetchQuery({
+        queryKey: ["tokenBalance", user.id],
+        queryFn: () => readTokenBalance(user.id),
+    });
+
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <div className="flex h-screen">
+                <Sidebar />
+                <div className="flex-1 flex flex-col">
+                    <Header />
+                    <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+                </div>
+            </div>
+        </HydrationBoundary>
+    );
 }

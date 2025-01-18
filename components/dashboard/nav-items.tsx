@@ -9,7 +9,7 @@ interface NavItem {
     subItems?: NavItem[];
 }
 
-export const mainNavItems: NavItem[] = [
+const mainNavItems: NavItem[] = [
     {
         id: "qa",
         name: "Q&A",
@@ -37,6 +37,13 @@ export const mainNavItems: NavItem[] = [
                 icon: <FileText className="w-4 h-4" />,
                 description: "Create a new Q&A manually",
             },
+            {
+                id: "qa-export",
+                name: "Export Q&As",
+                link: "/dashboard/export",
+                icon: <FileText className="w-4 h-4" />,
+                description: "Export your Q&As in various formats",
+            },
         ],
     },
     {
@@ -51,28 +58,6 @@ export const mainNavItems: NavItem[] = [
                 link: "/dashboard/subscriptions",
                 icon: <Unlink className="w-4 h-4" />,
                 description: "Manage email subscriptions",
-            },
-        ],
-    },
-    {
-        id: "knowledge",
-        name: "Knowledge Base",
-        link: "#knowledge",
-        icon: <BookOpen className="w-4 h-4" />,
-        subItems: [
-            {
-                id: "qa-export",
-                name: "Q&A Export",
-                link: "/dashboard/knowledge/export",
-                icon: <FileText className="w-4 h-4" />,
-                description: "Export your Q&As in various formats",
-            },
-            {
-                id: "docs",
-                name: "Documentation",
-                link: "/dashboard/knowledge/docs",
-                icon: <BookOpen className="w-4 h-4" />,
-                description: "Build documentation",
             },
         ],
     },
@@ -106,3 +91,5 @@ export const mainNavItems: NavItem[] = [
         description: "Manage account and preferences",
     },
 ];
+
+export { mainNavItems };

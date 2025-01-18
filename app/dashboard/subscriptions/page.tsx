@@ -1,30 +1,42 @@
-"use client";
+"use server";
 
+import { Suspense } from "react";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/get-query-client";
 import { SubscriptionList } from "@/components/email/subscription-list";
-import { useReadSubscriptions } from "@/lib/features/email/hooks/use-read-subscriptions";
-import { useUnsubscribe } from "@/lib/features/email/hooks/use-unsubscribe";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { readSubscriptions } from "@/lib/features/email/queries/readSubscriptions";
+import { readEmailAccounts } from "@/lib/features/email/queries/readEmailAccounts";
+import { PageProps } from "@/lib/types/components";
 
-export default function SubscriptionsPage() {
-    const { data: subscriptions, isLoading } = useReadSubscriptions();
-    const { mutate: unsubscribe, isPending: isUnsubscribing } = useUnsubscribe();
+export default function SubscriptionsPage({ params, searchParams }: PageProps) {
+    const queryClient = getQueryClient();
 
-    if (isLoading) {
-        return (
-            <div className="container py-8">
-                <h1 className="mb-8 text-2xl font-bold">Email Subscriptions</h1>
-                <div>Loading...</div>
-            </div>
-        );
-    }
+    // Prefetch subscriptions and email accounts in parallel
+    queryClient.prefetchQuery({
+        queryKey: ["subscriptions"],
+        queryFn: () => readSubscriptions(),
+    });
+
+    queryClient.prefetchQuery({
+        queryKey: ["email-accounts"],
+        queryFn: () => readEmailAccounts(),
+    });
 
     return (
-        <div className="container py-8">
-            <h1 className="mb-8 text-2xl font-bold">Email Subscriptions</h1>
-            <SubscriptionList
-                subscriptions={subscriptions ?? []}
-                onUnsubscribe={unsubscribe}
-                isUnsubscribing={isUnsubscribing}
-            />
-        </div>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <ErrorBoundary>
+                <Suspense fallback={<div className="flex justify-center p-8">Loading subscriptions...</div>}>
+                    <div className="space-y-6">
+                        <div>
+                            <h2 className="text-2xl font-bold tracking-tight">Email Subscriptions</h2>
+                            <p className="text-muted-foreground">Manage your email subscriptions</p>
+                        </div>
+
+                        <SubscriptionList />
+                    </div>
+                </Suspense>
+            </ErrorBoundary>
+        </HydrationBoundary>
     );
 }

@@ -1,15 +1,29 @@
-import { QAList } from "@/components/qa/qa-list";
-import { PageHeader } from "@/components/ui/page-header";
-import { PAGE_HEADERS } from "@/lib/constants/text";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
+"use server";
 
-export default function QAPage() {
+import { Suspense } from "react";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/get-query-client";
+import { QAList } from "@/components/qa/qa-list";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { PageProps } from "@/lib/types/components";
+import { readQAs } from "@/lib/features/qa/queries/readQAs";
+
+export default function QAPage({ params, searchParams }: PageProps) {
+    const queryClient = getQueryClient();
+
+    // No need to await since we configured the queryClient to dehydrate pending queries
+    queryClient.prefetchQuery({
+        queryKey: ["qas", undefined],
+        queryFn: () => readQAs(),
+    });
+
     return (
-        <div className="space-y-6">
-            <PageHeader title={PAGE_HEADERS.QA_LIBRARY.title} description={PAGE_HEADERS.QA_LIBRARY.description} />
+        <HydrationBoundary state={dehydrate(queryClient)}>
             <ErrorBoundary>
-                <QAList />
+                <Suspense fallback={<div className="flex justify-center p-8">Loading Q&As...</div>}>
+                    <QAList />
+                </Suspense>
             </ErrorBoundary>
-        </div>
+        </HydrationBoundary>
     );
 }

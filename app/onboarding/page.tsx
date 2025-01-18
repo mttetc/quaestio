@@ -1,19 +1,32 @@
-"use client";
+"use server";
 
-import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
-import { useReadUser } from "@/lib/features/auth/hooks/use-read-user";
-import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/get-query-client";
+import { readUser } from "@/lib/features/auth/queries/read-user";
+import { OnboardingView } from "@/components/onboarding/onboarding-view";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { PageProps } from "@/lib/types/components";
 
-export default function OnboardingPage() {
-    const { isLoading } = useReadUser();
+export default async function OnboardingPage({ params, searchParams }: PageProps) {
+    const queryClient = getQueryClient();
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-        );
-    }
+    await queryClient.prefetchQuery({
+        queryKey: ["user"],
+        queryFn: readUser,
+    });
 
-    return <OnboardingWizard />;
+    return (
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <ErrorBoundary>
+                <Suspense fallback={
+                    <div className="flex items-center justify-center min-h-screen">
+                        <div className="animate-pulse">Loading...</div>
+                    </div>
+                }>
+                    <OnboardingView />
+                </Suspense>
+            </ErrorBoundary>
+        </HydrationBoundary>
+    );
 }

@@ -5,8 +5,9 @@ import { qaEntries } from "@/lib/core/db/schema";
 import { readUser } from "@/lib/features/auth/queries/read-user";
 import { desc, eq } from "drizzle-orm";
 import type { QAFilter } from "../schemas/qa";
+import type { QAEntry } from "../schemas/qa";
 
-export async function readQAs(filter?: QAFilter) {
+export async function readQAs(filter?: QAFilter): Promise<QAEntry[]> {
     const user = await readUser();
     return db.query.qaEntries.findMany({
         where: eq(qaEntries.userId, user.id),
@@ -15,7 +16,7 @@ export async function readQAs(filter?: QAFilter) {
     });
 }
 
-export async function readQA(id: string) {
+export async function readQA(id: string): Promise<QAEntry | undefined> {
     const user = await readUser();
     return db.query.qaEntries.findFirst({
         where: (qa) => eq(qa.id, id) && eq(qa.userId, user.id),

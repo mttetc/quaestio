@@ -1,36 +1,36 @@
-"use client";
+"use server";
 
-import { useReadEmailAccounts } from "@/lib/features/email/hooks/use-read-accounts";
-import { emailAccounts } from "@/lib/core/db/schema";
-import type { InferSelectModel } from "drizzle-orm";
+import { Suspense } from "react";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getQueryClient } from "@/lib/get-query-client";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { readUser } from "@/lib/features/auth/queries/read-user";
+import { readEmailAccounts } from "@/lib/features/email/queries/readEmailAccounts";
+import { PageProps } from "@/lib/types/components";
+import { SettingsContent } from "@/components/settings/settings-content";
 
-type EmailAccount = InferSelectModel<typeof emailAccounts>;
+export default async function SettingsPage({ params, searchParams }: PageProps) {
+    const queryClient = getQueryClient();
 
-export default function SettingsPage() {
-    const { data: linkedEmails = [], isLoading } = useReadEmailAccounts();
-
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
+    // Prefetch user and email accounts in parallel
+    await Promise.all([
+        queryClient.prefetchQuery({
+            queryKey: ["user"],
+            queryFn: () => readUser(),
+        }),
+        queryClient.prefetchQuery({
+            queryKey: ["email-accounts"],
+            queryFn: () => readEmailAccounts(),
+        }),
+    ]);
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight">Settings</h2>
-                <p className="text-muted-foreground">Manage your account settings and email connections</p>
-            </div>
-
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium">Connected Email Accounts</h3>
-                <div className="space-y-2">
-                    {linkedEmails.map((email: EmailAccount) => (
-                        <div key={email.id} className="flex items-center justify-between">
-                            <span>{email.email}</span>
-                            <span className="text-sm text-muted-foreground">{email.provider}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
+        <ErrorBoundary>
+            <Suspense>
+                <HydrationBoundary state={dehydrate(queryClient)}>
+                    <SettingsContent />
+                </HydrationBoundary>
+            </Suspense>
+        </ErrorBoundary>
     );
 }

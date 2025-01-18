@@ -8,22 +8,12 @@ import { addEmailAccount } from "@/lib/features/email/actions/add-account";
 import { createClient, getURL } from "@/lib/infrastructure/supabase/client";
 import { useTransition } from "react";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { User } from "@supabase/supabase-js";
 
 export function EmailSetupSteps() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        startTransition(async () => {
-            const supabase = await createClient();
-            const {
-                data: { user },
-            } = await supabase.auth.getUser();
-            setUser(user);
-        });
-    }, []);
 
     // Add error handling for auth redirects
     useEffect(() => {
@@ -46,6 +36,9 @@ export function EmailSetupSteps() {
     }
 
     const handleSubmit = async (email: string, appPassword: string) => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
         if (!user) {
             toast({
                 title: "Error",
