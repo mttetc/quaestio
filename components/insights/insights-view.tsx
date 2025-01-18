@@ -1,103 +1,64 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { ViewProps } from "@/lib/types/components";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { useDateRange } from "@/lib/features/analytics/hooks/use-date-range";
 import { DatePickerWithRange } from "@/components/ui/date-picker";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useReadAllMetrics } from "@/lib/features/analytics/hooks/use-metrics";
-import { useReadSentimentHeatmap } from "@/lib/features/analytics/hooks/use-sentiment";
-import { ResponseTimeCard } from "@/lib/features/analytics/components/metrics/cards/response-time-card";
-import { VolumeMetricsCard } from "@/lib/features/analytics/components/metrics/cards/volume-metrics-card";
-import { QualityMetricsCard } from "@/lib/features/analytics/components/metrics/cards/quality-metrics-card";
-import { SentimentChart } from "@/lib/features/analytics/components/sentiment/sentiment-chart";
+import { MetricsOverview } from "@/lib/features/analytics/components/metrics/metrics-overview";
 import { QuestionChart } from "@/lib/features/analytics/components/questions/chart";
-import { QuestionList } from "@/lib/features/analytics/components/questions/list";
-import { DateRange } from "react-day-picker";
+import { SentimentChart } from "@/lib/features/analytics/components/sentiment/sentiment-chart";
 
-// Default date range for 30 days
-const defaultDateRange = {
-    from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    to: new Date(),
-};
+function CardSkeleton() {
+    return (
+        <Card>
+            <CardContent className="h-[450px] animate-pulse" />
+        </Card>
+    );
+}
 
 export function InsightsView({ className }: ViewProps) {
-    const [dateRange, setDateRange] = useState<DateRange | undefined>(defaultDateRange);
-
-    // Use parallel queries for metrics
-    const [
-        { data: responseMetrics, isLoading: isLoadingResponse },
-        { data: volumeMetrics, isLoading: isLoadingVolume },
-        { data: qualityMetrics, isLoading: isLoadingQuality },
-    ] = useReadAllMetrics(dateRange);
-
-    // Sentiment data is fetched separately as it's in a different module
-    const { data: sentimentHeatmap, isLoading: isLoadingSentiment } = useReadSentimentHeatmap(dateRange);
-
-    // Let Next.js loading.tsx handle initial loading
-    if (isLoadingResponse || isLoadingVolume || isLoadingQuality || isLoadingSentiment) {
-        return null;
-    }
+    const { dateRange, setDateRange } = useDateRange();
 
     return (
-        <div className={`space-y-6 ${className ?? ""}`}>
-            <div className="flex justify-between items-center">
+        <div className={className}>
+            <div className="flex items-center justify-between space-y-2">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Insights & Analytics</h2>
                     <p className="text-muted-foreground">Track your Q&A performance and engagement</p>
                 </div>
-                <DatePickerWithRange
-                    date={dateRange}
-                    onDateChange={(newDateRange) => newDateRange && setDateRange(newDateRange)}
-                />
+                <DatePickerWithRange date={dateRange} onDateChange={setDateRange} />
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
-                <Suspense fallback={<div>Loading response metrics...</div>}>
-                    <ResponseTimeCard metrics={responseMetrics} dateRange={dateRange} />
-                </Suspense>
-                <Suspense fallback={<div>Loading volume metrics...</div>}>
-                    <VolumeMetricsCard metrics={volumeMetrics} />
-                </Suspense>
-                <Suspense fallback={<div>Loading quality metrics...</div>}>
-                    <QualityMetricsCard metrics={qualityMetrics} />
-                </Suspense>
-            </div>
-
-            <Tabs defaultValue="sentiment">
+            <Tabs defaultValue="overview" className="space-y-4 mt-4">
                 <TabsList>
-                    <TabsTrigger value="sentiment">Sentiment Trends</TabsTrigger>
-                    <TabsTrigger value="questions">Question Trends</TabsTrigger>
-                    <TabsTrigger value="top-questions">Top Questions</TabsTrigger>
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="sentiment">Sentiment</TabsTrigger>
+                    <TabsTrigger value="questions">Questions</TabsTrigger>
                 </TabsList>
-                <TabsContent value="sentiment" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Sentiment Analysis</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Suspense fallback={<div>Loading sentiment chart...</div>}>
-                                <SentimentChart data={sentimentHeatmap} />
-                            </Suspense>
-                        </CardContent>
-                    </Card>
+
+                <TabsContent value="overview" className="space-y-4">
+                    <ErrorBoundary>
+                        <MetricsOverview dateRange={dateRange} />
+                    </ErrorBoundary>
                 </TabsContent>
-                <TabsContent value="questions" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Question Trends</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Suspense fallback={<div>Loading question trends...</div>}>
-                                <QuestionChart dateRange={dateRange} />
-                            </Suspense>
-                        </CardContent>
-                    </Card>
+
+                <TabsContent value="sentiment" className="space-y-4">
+                    <ErrorBoundary>
+                        <Suspense fallback={<CardSkeleton />}>
+                            <SentimentChart dateRange={dateRange} />
+                        </Suspense>
+                    </ErrorBoundary>
                 </TabsContent>
-                <TabsContent value="top-questions" className="space-y-6">
-                    <Suspense fallback={<div>Loading top questions...</div>}>
-                        <QuestionList dateRange={dateRange} />
-                    </Suspense>
+
+                <TabsContent value="questions" className="space-y-4">
+                    <ErrorBoundary>
+                        <Suspense fallback={<CardSkeleton />}>
+                            <QuestionChart dateRange={dateRange} />
+                        </Suspense>
+                    </ErrorBoundary>
                 </TabsContent>
             </Tabs>
         </div>

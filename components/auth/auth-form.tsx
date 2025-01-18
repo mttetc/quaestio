@@ -64,7 +64,7 @@ export function AuthForm({ type }: AuthFormProps) {
             <SubmitButton type={type} />
             {type === "login" ? (
                 <p className="text-sm text-muted-foreground">
-                    Don't have an account? <Link href="/signup">Sign up</Link>
+                    Don&apos;t have an account? <Link href="/signup">Sign up</Link>
                 </p>
             ) : (
                 <p className="text-sm text-muted-foreground">

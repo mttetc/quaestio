@@ -16,7 +16,7 @@ function makeQueryClient() {
                 networkMode: "offlineFirst",
                 refetchOnWindowFocus: false,
                 retry: MAX_RETRIES,
-                retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+                retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
             },
             mutations: {
                 retry: 1,

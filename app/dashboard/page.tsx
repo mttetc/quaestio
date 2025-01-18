@@ -2,7 +2,6 @@
 
 import { Suspense } from "react";
 import { dehydrate, HydrationBoundary, useQueryClient } from "@tanstack/react-query";
-import { getQueryClient } from "@/lib/get-query-client";
 import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { readUser } from "@/lib/features/auth/queries/read-user";

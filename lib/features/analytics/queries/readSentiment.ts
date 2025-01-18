@@ -9,11 +9,11 @@ import {
     type SentimentHeatmapData,
 } from "@/lib/features/analytics/schemas/sentiment";
 
-export async function readSentiment(dateRange: DateRange): Promise<SentimentData[]> {
+export async function readSentiment(dateRange?: DateRange): Promise<SentimentData[]> {
     try {
         const params = new URLSearchParams();
-        if (dateRange.from) params.set("from", dateRange.from.toISOString());
-        if (dateRange.to) params.set("to", dateRange.to.toISOString());
+        if (dateRange?.from) params.set("from", dateRange.from.toISOString());
+        if (dateRange?.to) params.set("to", dateRange.to.toISOString());
 
         const response = await fetch(`/api/analytics/sentiment?${params}`, {
             method: "GET",
@@ -39,11 +39,11 @@ export async function readSentiment(dateRange: DateRange): Promise<SentimentData
     }
 }
 
-export async function readSentimentHeatmap(dateRange: DateRange): Promise<SentimentHeatmapData> {
+export async function readSentimentHeatmap(dateRange?: DateRange): Promise<SentimentHeatmapData> {
     try {
         const params = new URLSearchParams();
-        if (dateRange.from) params.set("from", dateRange.from.toISOString());
-        if (dateRange.to) params.set("to", dateRange.to.toISOString());
+        if (dateRange?.from) params.set("from", dateRange.from.toISOString());
+        if (dateRange?.to) params.set("to", dateRange.to.toISOString());
 
         const response = await fetch(`/api/analytics/sentiment/heatmap?${params}`, {
             method: "GET",

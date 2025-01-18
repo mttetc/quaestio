@@ -1,4 +1,7 @@
+// This page is automatically static because it has no dynamic features
 import { AuthForm } from "@/components/auth/auth-form";
+
+export const dynamic = "force-static";
 
 export default function SignupPage() {
     return (

@@ -17,6 +17,10 @@ function getTopCategories(byCategory: Record<string, number>): Array<[string, nu
         .slice(0, 5);
 }
 
+function calculateProgress(totalQuestions: number | undefined): number {
+    return Math.min(100, ((totalQuestions || 0) / 100) * 100);
+}
+
 export function VolumeMetricsCard({ metrics, className, summary = false }: VolumeMetricsCardProps) {
     const totalByCategory = metrics?.byCategory
         ? Object.values(metrics.byCategory).reduce((a, b) => a + b, 0)
@@ -30,7 +34,7 @@ export function VolumeMetricsCard({ metrics, className, summary = false }: Volum
             <MetricCard title="Volume" icon={BarChart2} className={className} summary>
                 <div className="text-2xl font-bold">{metrics?.totalQuestions || 0}</div>
                 <Progress
-                    value={Math.min(100, ((metrics?.totalQuestions || 0) / 100) * 100)}
+                    value={calculateProgress(metrics?.totalQuestions)}
                     className="mt-2"
                 />
                 <div className="mt-4 space-y-2">
@@ -46,12 +50,16 @@ export function VolumeMetricsCard({ metrics, className, summary = false }: Volum
     }
 
     return (
-        <MetricCard title="Volume Metrics" icon={BarChart2} className={className}>
+        <MetricCard title="Volume" icon={BarChart2} className={className}>
             <div className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
                         <p className="text-sm font-medium text-muted-foreground">Total Questions</p>
-                        <p className="text-2xl font-bold">{metrics?.totalQuestions ?? 0}</p>
+                        <p className="text-2xl font-bold">{metrics?.totalQuestions || 0}</p>
+                        <Progress
+                            value={calculateProgress(metrics?.totalQuestions)}
+                            className="mt-2"
+                        />
                     </div>
                     <div className="space-y-2">
                         <p className="text-sm font-medium text-muted-foreground">Categories</p>

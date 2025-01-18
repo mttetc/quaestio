@@ -3,22 +3,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart } from "@/components/ui/line-chart";
 import { useReadQuestionChart } from "@/lib/features/analytics/hooks/use-questions";
-import type { DateRange } from "@/components/ui/calendar";
+import { DateRange } from "react-day-picker";
 
 interface QuestionChartProps {
-    dateRange: DateRange;
+    dateRange: DateRange | undefined;
 }
 
 export function QuestionChart({ dateRange }: QuestionChartProps) {
-    const { data, isLoading, error } = useReadQuestionChart(dateRange);
-
-    if (isLoading) {
-        return <div>Loading chart data...</div>;
-    }
-
-    if (error || !data) {
-        return <div>Failed to load chart data</div>;
-    }
+    const { data: chart } = useReadQuestionChart(dateRange);
 
     return (
         <Card>
@@ -26,7 +18,7 @@ export function QuestionChart({ dateRange }: QuestionChartProps) {
                 <CardTitle>Question Volume</CardTitle>
             </CardHeader>
             <CardContent>
-                <LineChart data={data.data} xField="date" yField="count" tooltipTitle="Questions" />
+                <LineChart data={chart?.data ?? []} xField="date" yField="count" tooltipTitle="Questions" />
             </CardContent>
         </Card>
     );

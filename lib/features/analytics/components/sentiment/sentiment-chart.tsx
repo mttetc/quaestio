@@ -1,22 +1,24 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import type { SentimentHeatmapData } from "../../schemas/sentiment"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useReadSentiment } from "../../hooks/use-sentiment"
+import type { DateRange } from "react-day-picker"
 
 interface SentimentChartProps {
-  data?: SentimentHeatmapData
+  dateRange: DateRange | undefined
 }
 
-export function SentimentChart({ data }: SentimentChartProps) {
-  if (!data?.sentiment.length) return null
+export function SentimentChart({ dateRange }: SentimentChartProps) {
+  const { data } = useReadSentiment(dateRange);
+  
+  if (!data?.length) return null
 
   // Transform data for the chart
-  const chartData = data.sentiment.map(item => ({
-    date: item.date,
-    positive: item.sentiment === "positive" ? item.count / item.volume : 0,
-    negative: item.sentiment === "negative" ? item.count / item.volume : 0,
-    neutral: item.sentiment === "neutral" ? item.count / item.volume : 0,
+  const chartData = data.map((item, index) => ({
+    index,
+    value: item.percentage,
+    type: item.type
   }))
 
   return (
@@ -30,37 +32,19 @@ export function SentimentChart({ data }: SentimentChartProps) {
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
-                dataKey="date" 
-                tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                dataKey="index" 
               />
               <YAxis 
                 tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}
               />
               <Tooltip 
-                labelFormatter={(value) => new Date(value).toLocaleDateString()}
                 formatter={(value: number) => [(value * 100).toFixed(0) + '%']}
               />
               <Line 
                 type="monotone" 
-                dataKey="positive" 
-                name="Positive"
+                dataKey="value" 
+                name="Sentiment"
                 stroke="#10b981"
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="negative" 
-                name="Negative"
-                stroke="#ef4444"
-                strokeWidth={2}
-                dot={false}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="neutral" 
-                name="Neutral"
-                stroke="#6b7280"
                 strokeWidth={2}
                 dot={false}
               />

@@ -2,19 +2,23 @@
 
 import { Progress } from "@/components/ui/progress";
 import { Clock } from "lucide-react";
-import type { DateRange } from "react-day-picker";
+import type { ResponseMetrics } from "../../../schemas/metrics";
 import { useReadResponseMetrics } from "@/lib/features/analytics/hooks/use-metrics";
 import { MetricCard } from "./metric-card";
 
 interface ResponseTimeCardProps {
-    metrics?: any;
-    dateRange?: DateRange;
+    metrics?: ResponseMetrics;
     className?: string;
     summary?: boolean;
 }
 
-export function ResponseTimeCard({ metrics: propMetrics, dateRange, className, summary = false }: ResponseTimeCardProps) {
-    const { data: fetchedMetrics } = useReadResponseMetrics(dateRange);
+function calculateProgress(hours: number | undefined, maxHours: number | undefined): number {
+    if (!hours || !maxHours || maxHours === 0) return 0;
+    return Math.min(100, (hours / maxHours) * 100);
+}
+
+export function ResponseTimeCard({ metrics: propMetrics, className, summary = false }: ResponseTimeCardProps) {
+    const { data: fetchedMetrics } = useReadResponseMetrics(undefined);
     const metrics = propMetrics || fetchedMetrics;
 
     if (!metrics) return null;
@@ -24,7 +28,7 @@ export function ResponseTimeCard({ metrics: propMetrics, dateRange, className, s
             <MetricCard title="Response Time" icon={Clock} className={className} summary>
                 <div className="text-2xl font-bold">{metrics.averageTimeHours.toFixed(1)}h</div>
                 <Progress
-                    value={Math.min(100, (metrics.averageTimeHours / 24) * 100)}
+                    value={calculateProgress(metrics.averageTimeHours, metrics.slowestResponseHours)}
                     className="mt-2"
                 />
                 <p className="text-xs text-muted-foreground mt-2">{metrics.totalResponses} total responses</p>
@@ -38,7 +42,7 @@ export function ResponseTimeCard({ metrics: propMetrics, dateRange, className, s
                 <div>
                     <div className="text-2xl font-bold">{metrics.averageTimeHours.toFixed(1)}h</div>
                     <Progress
-                        value={Math.min(100, (metrics.averageTimeHours / 24) * 100)}
+                        value={calculateProgress(metrics.averageTimeHours, metrics.slowestResponseHours)}
                         className="mt-2"
                     />
                     <p className="mt-2 text-sm text-muted-foreground">

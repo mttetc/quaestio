@@ -9,12 +9,16 @@ export async function createQA(
     data: Omit<InferSelectModel<typeof qaEntries>, "id" | "userId" | "createdAt" | "updatedAt">
 ) {
     const user = await readUser();
+    const now = new Date();
 
     const [qa] = await db
         .insert(qaEntries)
         .values({
-            userId: user.id,
             ...data,
+            userId: user.id,
+            createdAt: now,
+            updatedAt: now,
+            responseTimeHours: data.responseTimeHours ?? 0,
         })
         .returning();
 

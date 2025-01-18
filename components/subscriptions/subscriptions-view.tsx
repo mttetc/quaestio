@@ -1,6 +1,6 @@
 "use client";
 
-import { SubscriptionList } from "@/components/subscriptions/subscription-list";
+import { SubscriptionList } from "@/components/email/subscription-list";
 import { PageHeader } from "@/components/ui/page-header";
 import { ViewProps } from "@/lib/types/components";
 

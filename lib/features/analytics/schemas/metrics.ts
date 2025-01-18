@@ -12,6 +12,8 @@ export const responseTimeMetricsSchema = z
 
 export const responseMetricsSchema = z.object({
     averageTimeHours: z.number().min(0),
+    fastestResponseHours: z.number().min(0),
+    slowestResponseHours: z.number().min(0),
     totalResponses: z.number().int().min(0),
 });
 
@@ -23,6 +25,7 @@ export const volumeByTagMetricsSchema = z.object({
 export const volumeMetricsSchema = z.object({
     totalQuestions: z.number().int().min(0),
     byCategory: z.record(z.string().min(1), z.number().int().min(0)),
+    byTag: z.array(volumeByTagMetricsSchema),
 });
 
 export const qualityMetricsSchema = z.object({

@@ -5,33 +5,20 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/get-query-client";
 import { InsightsView } from "@/components/insights/insights-view";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { readQualityMetrics, readResponseTimeMetrics, readVolumeMetrics } from "@/lib/features/analytics/queries/readMetrics";
 import { PageProps } from "@/lib/types/components";
+import { prefetchMetricsData } from "@/lib/features/analytics/utils/prefetch";
 
-export default function InsightsPage({ params, searchParams }: PageProps) {
+export default async function InsightsPage({ params, searchParams }: PageProps) {
     const queryClient = getQueryClient();
-
-    // Prefetch all metrics in parallel
-    queryClient.prefetchQuery({
-        queryKey: ["metrics", "quality"],
-        queryFn: () => readQualityMetrics(),
-    });
-
-    queryClient.prefetchQuery({
-        queryKey: ["metrics", "response-time"],
-        queryFn: () => readResponseTimeMetrics(),
-    });
-
-    queryClient.prefetchQuery({
-        queryKey: ["metrics", "volume"],
-        queryFn: () => readVolumeMetrics(),
-    });
+    
+    // Prefetch metrics data
+    await prefetchMetricsData(queryClient);
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
             <ErrorBoundary>
-                <Suspense fallback={<div className="flex justify-center p-8">Loading insights...</div>}>
-                    <InsightsView />
+                <Suspense fallback={<div>Loading...</div>}>
+                    <InsightsView className="p-8" />
                 </Suspense>
             </ErrorBoundary>
         </HydrationBoundary>

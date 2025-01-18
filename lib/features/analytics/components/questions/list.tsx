@@ -2,11 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useReadQuestionList } from "@/lib/features/analytics/hooks/use-questions";
-import type { DateRange } from "@/components/ui/calendar";
 import { Suspense } from "react";
+import { DateRange } from "react-day-picker";
 
 interface QuestionListProps {
-    dateRange: DateRange;
+    dateRange: DateRange | undefined;
 }
 
 export function QuestionList({ dateRange }: QuestionListProps) {

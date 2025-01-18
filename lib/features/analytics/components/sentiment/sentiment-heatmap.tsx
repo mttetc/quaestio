@@ -2,11 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { DateRange } from "@/components/ui/calendar";
 import { useReadSentimentHeatmap } from "../../hooks/use-sentiment";
+import { DateRange } from "react-day-picker";
 
 interface SentimentHeatmapProps {
-    dateRange: DateRange;
+    dateRange: DateRange | undefined;
     className?: string;
 }
 
@@ -16,7 +16,7 @@ function getHeatmapColor(sentiment: { sentiment: string; count: number; volume: 
     }
 
     const intensity = Math.min(1, sentiment.count / sentiment.volume);
-    
+
     switch (sentiment.sentiment) {
         case "positive":
             return cn("bg-green-500", {
@@ -70,7 +70,11 @@ export function SentimentHeatmap({ dateRange, className }: SentimentHeatmapProps
                             <div
                                 key={generateHeatmapCellKey(row, col)}
                                 className={cn("aspect-square rounded-sm", getHeatmapColor(sentiment))}
-                                title={sentiment ? `${sentiment.date}: ${sentiment.count} ${sentiment.sentiment}` : "No data"}
+                                title={
+                                    sentiment
+                                        ? `${sentiment.date}: ${sentiment.count} ${sentiment.sentiment}`
+                                        : "No data"
+                                }
                             />
                         );
                     })}

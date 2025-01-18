@@ -11,7 +11,9 @@ import { extractQA } from "@/lib/features/qa/actions/extract";
 import { useReadEmailAccounts } from "@/lib/features/email/hooks/use-read-accounts";
 import { emailAccounts } from "@/lib/core/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { DEFAULT_DATE_RANGE } from "@/lib/features/analytics/hooks/use-date-range";
+import { DateRange } from "react-day-picker";
 
 type EmailAccount = InferSelectModel<typeof emailAccounts>;
 
@@ -41,15 +43,23 @@ const extractInitialState: ExtractFormState = { type: "initial", status: undefin
 const extractAction = async (state: ExtractFormState, formData: FormData): Promise<ExtractFormState> => {
     try {
         const emailId = formData.get("emailId") as string;
-        const dateRange = formData.get("dateRange") as string;
-        if (!emailId || !dateRange) {
+        const dateRangeStr = formData.get("dateRange") as string;
+        if (!emailId || !dateRangeStr) {
             return {
                 type: "error",
                 status: { error: "Email account and date range are required" },
             };
         }
 
-        const qa = await extractQA(emailId, "", "", dateRange);
+        const dateRange = JSON.parse(dateRangeStr) as DateRange;
+        if (!dateRange.from || !dateRange.to) {
+            return {
+                type: "error",
+                status: { error: "Invalid date range" },
+            };
+        }
+
+        const qa = await extractQA(emailId, "", "", dateRangeStr);
         return {
             type: "success",
             status: { count: 1 },

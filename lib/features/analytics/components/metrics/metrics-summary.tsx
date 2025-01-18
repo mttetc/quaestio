@@ -1,14 +1,11 @@
 "use client";
 
-import { BarChart2, Clock, ThumbsUp } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { MetricCard } from "./cards/metric-card";
-import { useReadAllMetrics } from "../../hooks/use-metrics";
-import type { DateRange } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
+import { useReadAllMetrics } from "../../hooks/use-metrics";
 import { QualityMetricsCard } from "./cards/quality-metrics-card";
-import { VolumeMetricsCard } from "./cards/volume-metrics-card";
 import { ResponseTimeCard } from "./cards/response-time-card";
+import { VolumeMetricsCard } from "./cards/volume-metrics-card";
 
 interface MetricsSummaryProps {
     dateRange?: DateRange;

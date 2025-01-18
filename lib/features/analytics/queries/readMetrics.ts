@@ -20,22 +20,29 @@ export async function readResponseTimeMetrics(dateRange?: DateRange): Promise<Re
     try {
         const query = db
             .select({
-                avgResponseTime: sql<number>`avg(extract(epoch from (updated_at - created_at)))`,
+                avgResponseTime: sql<number>`avg(response_time_hours)`,
+                minResponseTime: sql<number>`min(response_time_hours)`,
+                maxResponseTime: sql<number>`max(response_time_hours)`,
                 totalCount: sql<number>`count(*)`,
             })
             .from(qaEntries)
             .where(
                 dateRange?.from && dateRange?.to
-                    ? and(sql`updated_at > created_at`, between(qaEntries.createdAt, dateRange.from, dateRange.to))
-                    : sql`updated_at > created_at`
+                    ? and(
+                        sql`response_time_hours is not null`,
+                        between(qaEntries.createdAt, dateRange.from, dateRange.to)
+                    )
+                    : sql`response_time_hours is not null`
             );
 
         const result = await query;
         const [metrics] = result;
 
         const parsed = responseMetricsSchema.safeParse({
-            avgResponseTime: metrics.avgResponseTime || 0,
-            totalCount: metrics.totalCount || 0,
+            averageTimeHours: metrics.avgResponseTime || 0,
+            fastestResponseHours: metrics.minResponseTime || 0,
+            slowestResponseHours: metrics.maxResponseTime || 0,
+            totalResponses: metrics.totalCount || 0,
         });
 
         if (!parsed.success) {
@@ -44,8 +51,8 @@ export async function readResponseTimeMetrics(dateRange?: DateRange): Promise<Re
 
         return parsed.data;
     } catch (error) {
-        console.error("Error reading response time metrics:", error);
-        throw new Error("Failed to read response time metrics");
+        console.error("Failed to read response time metrics:", error);
+        throw error;
     }
 }
 
@@ -68,7 +75,7 @@ export async function readVolumeMetrics(
 
         const byTagQuery = db
             .select({
-                tag: qaEntries.tag,
+                tags: qaEntries.tags,
                 count: sql<number>`count(*)`,
             })
             .from(qaEntries)
@@ -77,7 +84,7 @@ export async function readVolumeMetrics(
                     ? between(qaEntries.createdAt, dateRange.from, dateRange.to)
                     : undefined
             )
-            .groupBy(qaEntries.tag);
+            .groupBy(qaEntries.tags);
 
         const [volumeResult, byTagResult] = await Promise.all([volumeQuery, byTagQuery]);
         const [volume] = volumeResult;
