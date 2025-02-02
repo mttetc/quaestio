@@ -2,51 +2,40 @@
 
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getActiveProducts } from "@/lib/features/products/queries/read-products";
+import { useQuery } from "@tanstack/react-query";
 
-const tiers = [
-    {
-        name: "Free",
-        price: "0",
-        description: "Try out the basic features",
-        features: ["Up to 100 emails per month", "Basic Q&A finding", "Simple search", "Email reports"],
-        buttonText: "Get Started",
-        buttonVariant: "outline" as const,
-    },
-    {
-        name: "Pro",
-        price: "19",
-        description: "For individuals and small teams",
-        features: [
-            "Up to 1000 emails per month",
-            "Better Q&A finding",
-            "Full search features",
-            "Detailed reports",
-            "Fast support",
-            "Custom sorting",
-        ],
-        buttonText: "Start Free Trial",
-        buttonVariant: "default" as const,
-        featured: true,
-    },
-    {
-        name: "Enterprise",
-        price: "99",
-        description: "For larger organizations",
-        features: [
-            "Unlimited emails",
-            "Custom setup",
-            "Team login",
-            "Extra security",
-            "Direct support",
-            "Custom tools",
-            "Support agreement",
-        ],
-        buttonText: "Contact Sales",
-        buttonVariant: "outline" as const,
-    },
-];
+function mapProductsToPricingTiers(products: Awaited<ReturnType<typeof getActiveProducts>>) {
+    return products.map(
+        (product) =>
+            ({
+                name: product.name,
+                price: product.price?.unit_amount ? product.price.unit_amount / 100 : 0,
+                description: `${product.tokens} tokens per month`,
+                features: [
+                    `${product.tokens} tokens per month`,
+                    `${product.monthly_quota === -1 ? "Unlimited" : product.monthly_quota} monthly extractions`,
+                    `${product.max_email_accounts === -1 ? "Unlimited" : product.max_email_accounts} email accounts`,
+                    "Priority support",
+                    "Advanced analytics",
+                    "Custom integrations",
+                ],
+                buttonText: product.price ? "Subscribe Now" : "Contact Sales",
+                buttonVariant: product.price ? "default" : "outline",
+                featured: product.tier === "PRO",
+            } as const)
+    );
+}
 
 export function PricingSection() {
+    const { data: tiers = [], isLoading } = useQuery({
+        queryKey: ["pricing-tiers"],
+        queryFn: async () => {
+            const products = await getActiveProducts();
+            return mapProductsToPricingTiers(products);
+        },
+    });
+
     return (
         <section className="container mx-auto py-24 sm:py-32" id="pricing">
             <div className="mx-auto max-w-2xl text-center">

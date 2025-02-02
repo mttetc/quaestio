@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { integrations } from "@/lib/core/db/schema";
-import { createInsertSchema } from "drizzle-zod";
 import type { InferSelectModel } from "drizzle-orm";
 
 export const integrationType = z.enum(["notion", "trello", "clickup"]);

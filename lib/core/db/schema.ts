@@ -8,7 +8,6 @@ export type QAMetadata = {
     context: string | null;
 };
 
-// Profile table that extends Supabase auth.users with business data
 export const profiles = pgTable("profiles", {
     id: uuid("id").primaryKey(), // references auth.users(id)
     availableTokens: integer("available_tokens").notNull().default(0),
@@ -22,6 +21,7 @@ export const profiles = pgTable("profiles", {
         .notNull()
         .default("user"),
     hasCompletedOnboarding: boolean("has_completed_onboarding").notNull().default(false),
+    currency: text("currency").default("USD"),
 });
 
 export const tokenTransactions = pgTable("token_transactions", {
@@ -129,6 +129,32 @@ export const subscriptions = pgTable("subscriptions", {
     status: text("status"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const products = pgTable("products", {
+    id: text("id").primaryKey().notNull(),
+    stripe_id: text("stripe_id").notNull().unique(),
+    name: text("name").notNull(),
+    tier: text("tier").notNull(),
+    tokens: integer("tokens").notNull(),
+    monthly_quota: integer("monthly_quota").notNull(),
+    max_email_accounts: integer("max_email_accounts").notNull(),
+    active: boolean("active").notNull().default(true),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const productPrices = pgTable("product_prices", {
+    id: text("id").primaryKey().notNull(),
+    product_id: text("product_id")
+        .notNull()
+        .references(() => products.id, { onDelete: "cascade" }),
+    stripe_price_id: text("stripe_price_id").notNull().unique(),
+    unit_amount: integer("unit_amount").notNull(),
+    currency: text("currency").notNull(),
+    active: boolean("active").notNull().default(true),
+    created_at: timestamp("created_at").notNull().defaultNow(),
+    updated_at: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const profilesRelations = relations(profiles, ({ many }) => ({

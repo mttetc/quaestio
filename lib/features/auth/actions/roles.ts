@@ -1,16 +1,13 @@
 "use server";
 
-import { z } from "zod";
 import { db } from "@/lib/core/db";
 import { profiles } from "@/lib/core/db/schema";
-import { createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import { eq } from "drizzle-orm";
+import { createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 const profileSchema = createSelectSchema(profiles);
 const roleSchema = z.enum(["user", "admin"]);
-const updateProfileSchema = createUpdateSchema(profiles).extend({
-    role: roleSchema,
-});
 
 export async function isAdmin(userId: string) {
     const user = await db.query.profiles.findFirst({

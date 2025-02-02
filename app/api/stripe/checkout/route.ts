@@ -65,13 +65,29 @@ export async function POST(request: NextRequest) {
                     quantity: 1,
                 },
             ],
-            mode: "payment",
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?success=true`,
+            mode: "subscription",
+            currency: dbUser?.currency || "USD",
+            payment_method_types: ["card"],
+            billing_address_collection: "required",
+            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?success=true&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?canceled=true`,
             metadata: {
                 userId: user.id,
                 packageId: package_.id,
                 tokens: package_.tokens.toString(),
+            },
+            automatic_tax: { enabled: true },
+            tax_id_collection: { enabled: true },
+            customer_update: {
+                shipping: "auto",
+                address: "auto",
+                name: "auto",
+            },
+            subscription_data: {
+                metadata: {
+                    userId: user.id,
+                    packageId: package_.id,
+                },
             },
         });
 

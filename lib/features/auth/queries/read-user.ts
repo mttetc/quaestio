@@ -40,5 +40,6 @@ export async function readUser(): Promise<User> {
         subscriptionStatus: (subscription?.status ?? "INACTIVE") as "INACTIVE" | "ACTIVE" | "CANCELED",
         role: profile.role,
         hasCompletedOnboarding: profile.hasCompletedOnboarding,
+        currency: profile.currency,
     };
 }

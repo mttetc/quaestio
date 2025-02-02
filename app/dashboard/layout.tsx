@@ -1,3 +1,5 @@
+"use server";
+
 import { Sidebar } from "@/components/ui/aceternity/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { getQueryClient } from "@/lib/get-query-client";

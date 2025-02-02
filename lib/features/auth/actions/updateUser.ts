@@ -5,7 +5,6 @@ import { profiles, subscriptions } from "@/lib/core/db/schema";
 import { createClient } from "@/lib/infrastructure/supabase/server";
 import { createUpdateSchema } from "drizzle-zod";
 import type { User } from "../schemas/user";
-import type { Subscription } from "../schemas/subscription";
 import { eq } from "drizzle-orm";
 
 const updateProfileSchema = createUpdateSchema(profiles);
