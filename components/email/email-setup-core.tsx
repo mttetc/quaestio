@@ -124,6 +124,7 @@ export function EmailSetupCore({
                                 required
                                 pattern="[a-z0-9._%+-]+@gmail\.com$"
                                 title="Please enter a valid Gmail address"
+                                autoComplete="off"
                             />
                             <Input
                                 value={appPassword}
@@ -135,6 +136,7 @@ export function EmailSetupCore({
                                 maxLength={16}
                                 pattern="[A-Za-z0-9]{16}"
                                 title="App password must be exactly 16 characters"
+                                autoComplete="new-password"
                             />
                         </div>
                     </div>
